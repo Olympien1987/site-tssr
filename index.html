@@ -1,0 +1,1008 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex, nofollow, noarchive">
+<title>Mémo Helpdesk TSSR</title>
+<style>
+:root{
+  --bg:#f6f7f9;--card:#fff;--txt:#1b1f24;--muted:#5b6470;--line:#dde1e6;
+  --acc:#1f6feb;--acc-soft:#e7f0ff;--code:#0f1720;--code-txt:#e6edf3;
+  --warn:#9a6700;--warn-soft:#fff8e1;--ok:#1a7f37;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --bg:#0d1117;--card:#161b22;--txt:#e6edf3;--muted:#9aa4b1;--line:#2b323c;
+    --acc:#58a6ff;--acc-soft:#132339;--code:#0a0e13;--code-txt:#e6edf3;
+    --warn:#e3b341;--warn-soft:#2a2213;--ok:#3fb950;
+  }
+}
+:root[data-theme="dark"]{
+  --bg:#0d1117;--card:#161b22;--txt:#e6edf3;--muted:#9aa4b1;--line:#2b323c;
+  --acc:#58a6ff;--acc-soft:#132339;--code:#0a0e13;--code-txt:#e6edf3;
+  --warn:#e3b341;--warn-soft:#2a2213;--ok:#3fb950;
+}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--txt);font:15px/1.55 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif}
+header{position:sticky;top:0;z-index:10;background:var(--card);border-bottom:1px solid var(--line);padding:10px 16px}
+.top{display:flex;gap:10px;align-items:center;flex-wrap:wrap;max-width:1100px;margin:0 auto}
+.top h1{font-size:17px;margin:0 8px 0 0;white-space:nowrap}
+#q{flex:1;min-width:180px;padding:9px 12px;border:1px solid var(--line);border-radius:8px;background:var(--bg);color:var(--txt);font-size:15px}
+button{font:inherit;cursor:pointer;border:1px solid var(--line);background:var(--bg);color:var(--txt);border-radius:8px;padding:7px 10px}
+nav{max-width:1100px;margin:8px auto 0;display:flex;gap:6px;overflow-x:auto;padding-bottom:2px}
+nav a{white-space:nowrap;text-decoration:none;color:var(--acc);background:var(--acc-soft);padding:4px 10px;border-radius:999px;font-size:13px}
+main{max-width:1100px;margin:0 auto;padding:16px}
+.card{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:16px;margin:0 0 16px;scroll-margin-top:110px}
+.card h2{margin:0 0 10px;font-size:19px}
+.card h3{margin:16px 0 6px;font-size:15.5px}
+.hidden{display:none}
+pre{position:relative;background:var(--code);color:var(--code-txt);padding:12px 12px;border-radius:8px;overflow-x:auto;font:13px/1.5 ui-monospace,Consolas,"Cascadia Mono",monospace;margin:6px 0 10px}
+pre .cp{position:absolute;top:6px;right:6px;font-size:12px;padding:3px 8px;background:#2b323c;color:#e6edf3;border:0}
+code{font-family:ui-monospace,Consolas,monospace;font-size:.92em;background:var(--acc-soft);padding:1px 5px;border-radius:4px}
+pre code{background:none;padding:0;font-size:inherit;white-space:pre}
+table{border-collapse:collapse;width:100%;font-size:14px;margin:6px 0 10px}
+th,td{border:1px solid var(--line);padding:6px 8px;text-align:left;vertical-align:top}
+th{background:var(--acc-soft)}
+.tw{overflow-x:auto}
+.tip{background:var(--warn-soft);border-left:4px solid var(--warn);padding:8px 12px;border-radius:6px;margin:8px 0}
+ol.prob>li{margin-bottom:6px}
+ol.prob>li::marker{font-weight:700;color:var(--acc)}
+.vars{display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:8px}
+.vars label{font-size:12.5px;color:var(--muted);display:flex;flex-direction:column;gap:3px}
+.vars input{padding:7px 9px;border:1px solid var(--line);border-radius:6px;background:var(--bg);color:var(--txt);font:13px ui-monospace,Consolas,monospace}
+.muted{color:var(--muted);font-size:13.5px}
+.grid2{display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:12px}
+details{border:1px solid var(--line);border-radius:8px;padding:8px 12px;margin:8px 0}
+summary{cursor:pointer;font-weight:600}
+@media (max-width:600px){.top h1{font-size:15px}.card{padding:12px}}
+</style>
+</head>
+<body>
+<header>
+  <div class="top">
+    <h1>🛠️ Mémo Helpdesk TSSR</h1>
+    <input id="q" type="search" placeholder="Rechercher : verrouillé, gpresult, DHCP, 445…" autocomplete="off">
+    <button id="theme" title="Thème">🌓</button>
+  </div>
+  <nav>
+    <a href="diag.html" style="background:var(--acc);color:#fff">🔎 Commandes diag</a><a href="revision.html" style="background:var(--acc);color:#fff">📝 Révision écrit</a><a href="#vars">⚙️ Variables</a><a href="#examen">🎓 Examen</a><a href="#methode">Méthode</a><a href="#glpi">GLPI</a><a href="#scenarios">Scénarios</a>
+    <a href="#outils">Consoles</a><a href="#ad">AD</a><a href="#gpo">GPO</a><a href="#partages">Partages/NTFS</a>
+    <a href="#dns">DNS</a><a href="#dhcp">DHCP</a><a href="#reseau">Réseau</a><a href="#vbox">VirtualBox</a><a href="#wac">Admin Center</a><a href="#linux">Linux</a><a href="#messages">Messages</a><a href="#scripts">Scripts</a><a href="#sauvegarde">Sauvegarde</a><a href="#entretien">Entretien</a><a href="#anglais">Anglais</a><a href="#memo">Mémo</a><a href="#liens">Liens</a>
+  </nav>
+</header>
+
+<main>
+
+<!-- ================= VARIABLES ================= -->
+<section class="card" id="vars">
+  <h2>⚙️ Variables de l'examen</h2>
+  <p class="muted">Remplis au début de l'épreuve : toutes les commandes de la page s'adaptent (domaine, serveur, IP). Mémorisé dans ce navigateur uniquement.</p>
+  <div class="vars">
+    <label>Domaine (FQDN)<input data-v="FQDN" value="domaine.local"></label>
+    <label>Nom NetBIOS<input data-v="NB" value="DOMAINE"></label>
+    <label>Nom du serveur<input data-v="SRV" value="SRV-DC1"></label>
+    <label>IP du serveur<input data-v="IPSRV" value="192.168.10.10"></label>
+    <label>Réseau (3 octets)<input data-v="NET" value="192.168.10"></label>
+    <label>Passerelle<input data-v="GW" value="192.168.10.254"></label>
+  </div>
+  <p class="muted" style="margin:8px 0 0">DN calculé : <code id="dnview"></code></p>
+</section>
+
+<!-- ================= EXAMEN ================= -->
+<section class="card" id="examen">
+  <h2>🎓 Déroulé de l'examen (titre TSSR RNCP37682)</h2>
+  <div class="tw"><table>
+    <tr><th>Épreuve</th><th>Durée</th><th>Ce qui se passe</th></tr>
+    <tr><td><b>Mise en situation – phase 1</b></td><td>1 h 30</td><td>En autonomie : manipulations sur les VM serveurs/clients + <b>documentation de chaque intervention</b> (ticket GLPI).</td></tr>
+    <tr><td><b>Mise en situation – phase 2</b></td><td>45 min</td><td>Avec le jury : incidents et demandes d'utilisateurs à traiter en direct. Le jury joue souvent l'utilisateur.</td></tr>
+    <tr><td>Entretien technique</td><td>45 min</td><td>Le jury revient sur ce que tu as fait (pourquoi, comment, alternatives) et teste tes connaissances.</td></tr>
+    <tr><td>Questionnaire professionnel</td><td>2 h</td><td>Questions ouvertes écrites, dont au moins une sur un <b>document technique en anglais</b>.</td></tr>
+    <tr><td>Entretien final</td><td>20 min</td><td>Échange sur ton Dossier Professionnel et ton projet.</td></tr>
+  </table></div>
+  <p class="muted">Session commencée en mars 2026 : examen passé sous l'ancien référentiel RNCP37682 (total 5 h 35), 2 blocs de compétences : assistance / support utilisateurs et maintien en condition opérationnelle de l'infrastructure.</p>
+
+  <h3>Phase 1 (1 h 30) : gestion du temps</h3>
+  <ol>
+    <li><b>0–10 min</b> : lire <b>tout</b> le sujet, lister les demandes et les livrables, remplir les <a href="#vars">variables</a>.</li>
+    <li>Prendre un <b>instantané</b> des VM si c'est permis.</li>
+    <li>Commencer par ce que tu maîtrises (points assurés), puis le reste.</li>
+    <li>Capture d'écran <b>après chaque étape</b> (Win+Maj+S) et une ligne dans le ticket au fil de l'eau, pas à la fin.</li>
+    <li>Bloqué plus de 10 min sur un point ? Noter où tu en es et passer au suivant.</li>
+    <li><b>10 dernières minutes</b> : tout revérifier (test utilisateur, gpresult, accès) et finir les tickets.</li>
+  </ol>
+
+  <h3>Phase 2 avec le jury : script de communication</h3>
+  <ol>
+    <li><b>Accueil</b> : « Support informatique, Julien, bonjour. Que puis-je faire pour vous ? »</li>
+    <li><b>Identifier</b> : nom, service, nom du poste, numéro pour rappeler.</li>
+    <li><b>Qualifier</b> : message exact ? depuis quand ? des collègues touchés ? un changement récent ? qu'avez-vous déjà essayé ?</li>
+    <li><b>Reformuler</b> : « Si je comprends bien, depuis ce matin vous n'accédez plus au dossier Compta, c'est bien ça ? »</li>
+    <li><b>Annoncer</b> : « J'ouvre un ticket et je vérifie votre compte, ça prend deux minutes. »</li>
+    <li><b>Penser à voix haute</b> : dire chaque hypothèse et chaque test, c'est ton raisonnement qui est noté.</li>
+    <li><b>Faire tester</b> : « Pouvez-vous réessayer maintenant ? »</li>
+    <li><b>Clore</b> : résumé de la cause, conseil pour éviter que ça revienne, « Avez-vous besoin d'autre chose ? », puis solution dans GLPI.</li>
+  </ol>
+  <h3>Pièges fréquents du jury</h3>
+  <ul>
+    <li><b>Reset de mot de passe</b> : vérifier l'identité de l'appelant avant (question, rappel sur son poste…).</li>
+    <li><b>Demande non conforme</b> (« donnez-moi les droits admin », « je veux l'accès au dossier RH ») : refuser poliment, demander la <b>validation du responsable</b>, le tracer dans le ticket.</li>
+    <li><b>Plusieurs demandes à la fois</b> : annoncer ta priorisation (impact × urgence) et t'y tenir.</li>
+    <li><b>Utilisateur pressé ou mécontent</b> : rester calme, reformuler, donner un délai réaliste.</li>
+    <li><b>Hors périmètre ou pas les droits</b> : escalader proprement (tests faits, hypothèse), sans bricoler.</li>
+    <li>Ne jamais supprimer / réinitialiser quelque chose d'irréversible sans l'annoncer.</li>
+  </ul>
+
+  <h3>Fiche d'intervention (si demandée en plus du ticket)</h3>
+<pre><code>Date / heure : [..]        Technicien : Julien
+Demandeur : [..]           Poste / serveur : [..]
+Demande / incident : [..]
+Diagnostic : [tests réalisés et résultats]
+Actions réalisées : [étapes, avec chemins / commandes]
+Vérification : [test concluant, capture n°..]
+Statut : Résolu / En attente / Escaladé   Durée : [..] min
+Recommandations : [prévention, suivi]</code></pre>
+</section>
+
+<!-- ================= METHODE ================= -->
+<section class="card" id="methode">
+  <h2>🧭 Méthode jour J</h2>
+  <ol class="prob">
+    <li><b>Lire le ticket en entier</b> : qui, quoi, depuis quand, combien de personnes touchées, message d'erreur exact.</li>
+    <li><b>Ouvrir / compléter le ticket GLPI tout de suite</b> (statut <i>En cours</i>) — le jury note la traçabilité.</li>
+    <li><b>Qualifier</b> : Incident (quelque chose ne marche plus) ou Demande (nouveau besoin) ? Urgence + impact.</li>
+    <li><b>Reproduire / vérifier</b> le symptôme (se connecter en tant que l'utilisateur test si possible).</li>
+    <li><b>Diagnostiquer du plus probable au moins probable</b> (voir <a href="#scenarios">Scénarios</a>). Noter chaque test et son résultat.</li>
+    <li><b>Corriger</b> une seule chose à la fois, puis retester.</li>
+    <li><b>Valider avec l'utilisateur</b> (session test, capture) avant de clore.</li>
+    <li><b>Documenter la solution</b> dans GLPI : cause, action, vérification. Passer en <i>Résolu</i>.</li>
+  </ol>
+  <div class="tip">Si tu bloques : dis-le et montre ta démarche (tests faits, hypothèses éliminées). Un raisonnement propre rapporte des points même sans résolution complète. Ne jamais supprimer un compte ou une GPO « pour tester ».</div>
+</section>
+
+<!-- ================= GLPI ================= -->
+<section class="card" id="glpi">
+  <h2>🎫 Ticket GLPI (v10 et v11, même logique)</h2>
+  <h3>Champs à remplir</h3>
+  <div class="tw"><table>
+    <tr><th>Champ</th><th>Quoi mettre</th></tr>
+    <tr><td>Type</td><td><b>Incident</b> = service dégradé / panne. <b>Demande</b> = création de compte, droit, installation, matériel.</td></tr>
+    <tr><td>Catégorie</td><td>La plus précise (ex. <i>Comptes &gt; Mot de passe</i>, <i>Réseau &gt; Partage</i>).</td></tr>
+    <tr><td>Demandeur / Observateur / Attribué à</td><td>L'utilisateur / son responsable si besoin / toi (ou ton groupe technicien).</td></tr>
+    <tr><td>Source de la demande</td><td>Téléphone, mail, helpdesk… (celle du scénario).</td></tr>
+    <tr><td>Urgence</td><td>À quelle vitesse ça doit être réglé (bloquant ? contournement possible ?).</td></tr>
+    <tr><td>Impact</td><td>Combien de personnes / quel enjeu (1 utilisateur = bas, un service = moyen/haut, toute l'entreprise = très haut).</td></tr>
+    <tr><td>Priorité</td><td>Calculée automatiquement par GLPI (matrice urgence × impact). Niveaux : Très basse → Majeure.</td></tr>
+    <tr><td>Titre</td><td>Court et factuel : <code>[Utilisateur] Compte verrouillé – impossible d'ouvrir la session</code></td></tr>
+    <tr><td>Lieu / Éléments</td><td>Poste concerné (ex. PC-COMPTA-01) si l'inventaire existe.</td></tr>
+  </table></div>
+
+  <h3>Exemples de qualification</h3>
+  <div class="tw"><table>
+    <tr><th>Cas</th><th>Type</th><th>Urgence</th><th>Impact</th></tr>
+    <tr><td>1 utilisateur verrouillé, ne peut pas travailler</td><td>Incident</td><td>Haute</td><td>Basse</td></tr>
+    <tr><td>Tout le service compta n'a plus son lecteur réseau</td><td>Incident</td><td>Haute</td><td>Moyenne/Haute</td></tr>
+    <tr><td>Plus personne n'a Internet / DHCP HS</td><td>Incident</td><td>Très haute</td><td>Très haute</td></tr>
+    <tr><td>Nouvel arrivant lundi prochain</td><td>Demande</td><td>Moyenne</td><td>Basse</td></tr>
+    <tr><td>Accès à un dossier supplémentaire</td><td>Demande</td><td>Basse/Moyenne</td><td>Basse</td></tr>
+  </table></div>
+
+  <h3>Dans la timeline du ticket</h3>
+  <ul>
+    <li><b>Suivi</b> = échange / info (visible du demandeur, ou <i>privé</i> pour les notes techniques).</li>
+    <li><b>Tâche</b> = action technique réalisée, avec durée (ex. 10 min) et statut <i>Fait</i>.</li>
+    <li><b>Document</b> = capture d'écran de la preuve (message d'erreur, résultat final).</li>
+    <li><b>Solution</b> = résumé final ; passe le ticket en <i>Résolu</i>. <i>Clos</i> = après validation du demandeur.</li>
+  </ul>
+  <p class="muted">Statuts : Nouveau → En cours (attribué) → En cours (planifié) → En attente (réponse utilisateur / tiers) → Résolu → Clos.</p>
+
+  <h3>Modèle de description</h3>
+<pre><code>Demandeur : [Nom Prénom] – Service [X] – Poste [PC-XXX]
+Symptôme : [message d'erreur exact / ce qui ne fonctionne pas]
+Depuis : [date/heure]   Personnes touchées : [1 / service / tous]
+Contournement : [oui/non]
+Contexte : [changement récent, mot de passe modifié, déménagement…]</code></pre>
+
+  <h3>Modèle de tâche / suivi technique</h3>
+<pre><code>Diagnostic :
+- Test 1 : [commande ou vérification] → [résultat]
+- Test 2 : [...] → [...]
+Cause identifiée : [...]
+Action : [ce qui a été modifié, où]
+Vérification : [test de connexion / accès réussi avec l'utilisateur]</code></pre>
+
+  <h3>Modèle de solution</h3>
+<pre><code>Cause : [ex. compte verrouillé après 5 tentatives erronées]
+Résolution : [ex. déverrouillage du compte dans l'AD + réinitialisation du mot de passe, changement imposé à la prochaine ouverture]
+Vérification : ouverture de session testée avec l'utilisateur, OK.
+Prévention : [ex. rappel de la politique de mots de passe à l'utilisateur]</code></pre>
+
+  <h3>Vocabulaire ITIL (à placer à l'oral)</h3>
+  <p class="muted">Incident · Demande de service · Problème (cause racine d'incidents récurrents) · Changement · SLA (délai de prise en charge / résolution) · Escalade N1 → N2 → N3 · Base de connaissances · Contournement.</p>
+</section>
+
+<!-- ================= SCENARIOS ================= -->
+<section class="card" id="scenarios">
+  <h2>🚑 Scénarios fréquents (pistes classées par probabilité)</h2>
+
+  <details open><summary>« Je n'arrive pas à ouvrir ma session »</summary>
+  <ol class="prob">
+    <li><b>Compte verrouillé</b> (trop d'essais) → vérifier <code>LockedOut</code>, <code>Unlock-ADAccount</code>. Chercher l'origine (événement 4740 sur le DC : souvent un ancien mot de passe enregistré).</li>
+    <li><b>Mot de passe expiré ou oublié</b> → réinitialiser + « doit changer à la prochaine ouverture ».</li>
+    <li><b>Compte désactivé ou expiré</b> (onglet Compte &gt; Date d'expiration) → <code>Enable-ADAccount</code>.</li>
+    <li>Saisie : Verr. Maj, clavier QWERTY, mauvais domaine (<code>{{NB}}\login</code> vs <code>.\login</code>).</li>
+    <li>Restrictions : <i>Horaires d'accès</i> ou <i>Se connecter à…</i> (onglet Compte).</li>
+    <li>« La relation d'approbation entre cette station et le domaine a échoué » → session admin locale puis <code>Test-ComputerSecureChannel -Repair</code>.</li>
+    <li>Horloge décalée de plus de 5 min (Kerberos) → <code>w32tm /resync</code>.</li>
+    <li>Le poste ne trouve pas le DC → DNS du client doit être <b>{{IPSRV}}</b> (pas la box).</li>
+  </ol>
+<pre><code>Get-ADUser jdupont -Properties LockedOut,Enabled,PasswordExpired,PasswordLastSet,AccountExpirationDate,badPwdCount,LastLogonDate
+Unlock-ADAccount jdupont
+Set-ADAccountPassword jdupont -Reset -NewPassword (Read-Host -AsSecureString "Nouveau mdp")
+Set-ADUser jdupont -ChangePasswordAtLogon $true
+Enable-ADAccount jdupont
+# Origine du verrouillage (sur le DC) :
+Get-WinEvent -FilterHashtable @{LogName='Security';Id=4740} -MaxEvents 5 | Format-List TimeCreated,Message</code></pre>
+  </details>
+
+  <details><summary>« Mon lecteur réseau n'apparaît pas »</summary>
+  <ol class="prob">
+    <li>La GPO ne s'applique pas à lui : utilisateur <b>pas dans la bonne OU</b> ou <b>pas dans le groupe ciblé</b> → <code>gpresult /r /scope user</code>.</li>
+    <li>Ajouté au groupe mais <b>session pas relancée</b> (jeton pas à jour) → fermer/rouvrir la session (ou <code>klist purge</code>).</li>
+    <li>GPO pas encore appliquée → <code>gpupdate /force</code> puis reconnexion.</li>
+    <li>Chemin UNC faux / partage inexistant → tester <code>\\{{SRV}}\Partage</code> dans Exécuter.</li>
+    <li>Droits de partage / NTFS insuffisants (voir <a href="#partages">Partages</a>).</li>
+    <li>Lettre déjà utilisée, ou action de la préférence mal choisie (<i>Mettre à jour</i> recommandé).</li>
+    <li>Résolution de nom / réseau → <code>Resolve-DnsName {{SRV}}</code>, <code>Test-NetConnection {{SRV}} -Port 445</code>.</li>
+  </ol></details>
+
+  <details><summary>« Accès refusé à un dossier »</summary>
+  <ol class="prob">
+    <li>Pas membre du bon groupe → <code>Get-ADPrincipalGroupMembership jdupont | select name</code>.</li>
+    <li>Ajouté mais pas reconnecté → déconnexion / reconnexion (<code>whoami /groups</code> côté client).</li>
+    <li>NTFS : Propriétés &gt; Sécurité &gt; Avancé &gt; <b>Accès effectif</b> pour l'utilisateur.</li>
+    <li>Refus explicite ou héritage désactivé sur un sous-dossier.</li>
+    <li>Droits de partage trop restrictifs (le <b>plus restrictif</b> entre partage et NTFS s'applique).</li>
+  </ol></details>
+
+  <details><summary>« Pas de réseau / pas d'Internet »</summary>
+  <ol class="prob">
+    <li>Physique : câble, Wi-Fi, carte désactivée, mode avion (<code>ncpa.cpl</code>).</li>
+    <li>IP en <b>169.254.x.x</b> (APIPA) → pas de DHCP : service DHCP arrêté, étendue pleine/désactivée, serveur non autorisé.</li>
+    <li><code>ping 8.8.8.8</code> OK mais pas les noms → <b>DNS</b> (client doit pointer sur le DC, le DC doit avoir des redirecteurs).</li>
+    <li>Passerelle absente ou fausse (<code>ipconfig /all</code>).</li>
+    <li>Pare-feu / proxy.</li>
+  </ol>
+<pre><code>ipconfig /all
+ipconfig /release ; ipconfig /renew
+ping {{GW}}          # passerelle
+ping 8.8.8.8         # sortie Internet
+nslookup google.fr   # DNS
+ipconfig /flushdns</code></pre>
+  </details>
+
+  <details><summary>« Mon imprimante ne marche pas »</summary>
+  <ol class="prob">
+    <li>Imprimante éteinte / erreur papier / hors ligne.</li>
+    <li>File d'attente bloquée → redémarrer le spouleur et purger.</li>
+    <li>Mauvaise imprimante par défaut.</li>
+    <li>Pilote corrompu → supprimer / réinstaller.</li>
+    <li>Installation refusée (droits admin, Point and Print) → déployer par GPO.</li>
+    <li>Réseau : <code>ping IP-imprimante</code>, <code>Test-NetConnection IP -Port 9100</code>.</li>
+  </ol>
+<pre><code>Stop-Service Spooler
+Remove-Item C:\Windows\System32\spool\PRINTERS\* -Force
+Start-Service Spooler
+Get-Printer
+Add-Printer -ConnectionName \\{{SRV}}\IMP-COMPTA</code></pre>
+  </details>
+
+  <details><summary>« Mon PC est lent »</summary>
+  <ol class="prob">
+    <li>Disque système plein (<code>Get-PSDrive C</code>).</li>
+    <li>Processus gourmand (Gestionnaire des tâches, <code>resmon</code>).</li>
+    <li>Trop d'applis au démarrage (Gestionnaire &gt; Démarrage).</li>
+    <li>Mises à jour Windows en cours.</li>
+    <li>Fichiers système : <code>sfc /scannow</code> puis <code>DISM /Online /Cleanup-Image /RestoreHealth</code>.</li>
+    <li>Disque en fin de vie / malware (observateur d'événements, antivirus).</li>
+  </ol></details>
+
+  <details><summary>VM cliente (VirtualBox) : pas de réseau / ne joint pas le domaine</summary>
+  <ol class="prob">
+    <li><b>Mauvais mode réseau</b> VirtualBox : en <i>NAT</i>, la VM ne voit pas le serveur → passer en <b>Accès par pont</b> (ou le réseau imposé par le sujet).</li>
+    <li>Câble « débranché » dans la config VirtualBox (Réseau &gt; Avancé &gt; <i>Câble branché</i>).</li>
+    <li>DNS du client ≠ IP du DC → le domaine est introuvable (« Impossible de contacter un contrôleur de domaine »).</li>
+    <li>IP hors du bon sous-réseau / pas de DHCP → <code>ipconfig /all</code>.</li>
+    <li>Nom de PC en double (VM clonée) → <code>Rename-Computer</code> avant de joindre. MAC en double → régénérer la MAC dans VirtualBox.</li>
+    <li>Pare-feu du serveur qui bloque le ping (le domaine peut quand même marcher : tester <code>Test-NetConnection {{SRV}} -Port 389</code>).</li>
+  </ol>
+<pre><code>Rename-Computer -NewName PC-CLIENT01 -Restart
+Set-DnsClientServerAddress -InterfaceAlias "Ethernet" -ServerAddresses {{IPSRV}}
+nslookup {{FQDN}}
+Add-Computer -DomainName {{FQDN}} -Credential {{NB}}\administrateur -Restart</code></pre>
+  </details>
+
+  <details><summary>« Mot de passe redemandé à chaque accès au partage »</summary>
+  <ol class="prob">
+    <li>Identifiants enregistrés erronés → Gestionnaire d'identification (<code>cmdkey /list</code>, supprimer l'entrée).</li>
+    <li>Accès par IP au lieu du nom (Kerberos ne marche pas → NTLM) → utiliser <code>\\{{SRV}}</code>.</li>
+    <li>Poste hors domaine ou session locale → rejoindre le domaine / se connecter avec le compte domaine.</li>
+    <li>Heure décalée (Kerberos).</li>
+  </ol></details>
+
+  <details><summary>Procédure : nouvel arrivant</summary>
+  <ol>
+    <li>Créer le compte dans la bonne OU (nom normalisé, UPN, description = service/fonction).</li>
+    <li>Mot de passe temporaire + changement obligatoire à la 1re connexion.</li>
+    <li>Ajouter aux groupes métier (GG_Service) → les droits et lecteurs suivent via AGDLP et GPO.</li>
+    <li>Vérifier : <code>gpresult</code> et test d'ouverture de session.</li>
+    <li>Ticket : demande, tâches réalisées, identifiants transmis de façon sécurisée.</li>
+  </ol></details>
+
+  <details><summary>Procédure : départ d'un salarié</summary>
+  <ol>
+    <li><b>Désactiver</b> le compte (ne pas supprimer tout de suite).</li>
+    <li>Réinitialiser le mot de passe, noter la date de départ dans la description.</li>
+    <li>Déplacer dans une OU « Comptes désactivés », retirer les groupes (après les avoir notés).</li>
+    <li>Sauvegarder / transférer ses données au responsable.</li>
+  </ol>
+<pre><code>Disable-ADAccount jdupont
+Set-ADUser jdupont -Description "Départ le $(Get-Date -Format dd/MM/yyyy)"
+Get-ADPrincipalGroupMembership jdupont | select name
+Get-ADUser jdupont | Move-ADObject -TargetPath "OU=Comptes desactives,{{DN}}"</code></pre>
+  </details>
+</section>
+
+<!-- ================= CONSOLES ================= -->
+<section class="card" id="outils">
+  <h2>🧰 Consoles et raccourcis (Win+R)</h2>
+  <div class="tw"><table>
+    <tr><th>Commande</th><th>Console</th><th>Commande</th><th>Console</th></tr>
+    <tr><td><code>dsa.msc</code></td><td>Utilisateurs et ordinateurs AD</td><td><code>gpmc.msc</code></td><td>Gestion des stratégies de groupe</td></tr>
+    <tr><td><code>dnsmgmt.msc</code></td><td>DNS</td><td><code>dhcpmgmt.msc</code></td><td>DHCP</td></tr>
+    <tr><td><code>fsmgmt.msc</code></td><td>Dossiers partagés (sessions, fichiers ouverts)</td><td><code>compmgmt.msc</code></td><td>Gestion de l'ordinateur</td></tr>
+    <tr><td><code>eventvwr.msc</code></td><td>Observateur d'événements</td><td><code>services.msc</code></td><td>Services</td></tr>
+    <tr><td><code>dssite.msc</code></td><td>Sites et services AD</td><td><code>domain.msc</code></td><td>Domaines et approbations AD</td></tr>
+    <tr><td><code>printmanagement.msc</code></td><td>Gestion de l'impression</td><td><code>rsop.msc</code></td><td>Stratégie résultante (client)</td></tr>
+    <tr><td><code>lusrmgr.msc</code></td><td>Utilisateurs/groupes locaux</td><td><code>diskmgmt.msc</code></td><td>Gestion des disques</td></tr>
+    <tr><td><code>ncpa.cpl</code></td><td>Cartes réseau</td><td><code>sysdm.cpl</code></td><td>Nom du PC / domaine</td></tr>
+    <tr><td><code>appwiz.cpl</code></td><td>Programmes</td><td><code>control userpasswords2</code></td><td>Comptes utilisateurs</td></tr>
+  </table></div>
+  <p class="muted">Astuce : dans <i>Utilisateurs et ordinateurs AD</i>, activer <b>Affichage &gt; Fonctionnalités avancées</b> pour voir l'onglet Éditeur d'attributs et la protection contre la suppression.</p>
+  <h3>Rôles installés / à installer</h3>
+<pre><code>Get-WindowsFeature | Where-Object Installed
+Install-WindowsFeature DNS, DHCP, FS-FileServer, FS-Resource-Manager -IncludeManagementTools
+Get-Service NTDS, DNS, DHCPServer, Netlogon, Spooler</code></pre>
+  <div class="tip"><b>Windows Server 2025</b> : la signature SMB est exigée par défaut (un vieux NAS/client peut ne plus accéder aux partages), Windows LAPS est intégré (<code>Get-LapsADPassword PC01 -AsPlainText</code>). Si le Gestionnaire de serveur rame, passer en PowerShell.</div>
+</section>
+
+<!-- ================= AD ================= -->
+<section class="card" id="ad">
+  <h2>👤 Active Directory</h2>
+  <h3>Utilisateurs</h3>
+<pre><code># Créer un utilisateur
+New-ADUser -Name "Jean Dupont" -GivenName Jean -Surname Dupont `
+ -SamAccountName jdupont -UserPrincipalName jdupont@{{FQDN}} `
+ -Path "OU=Utilisateurs,{{DN}}" -Description "Comptabilité" `
+ -AccountPassword (Read-Host -AsSecureString "Mot de passe") `
+ -ChangePasswordAtLogon $true -Enabled $true
+
+# Rechercher / infos
+Get-ADUser jdupont -Properties *
+Get-ADUser -Filter "Name -like '*dupont*'"
+Get-ADUser -Filter * -SearchBase "OU=Utilisateurs,{{DN}}" | select Name,SamAccountName,Enabled
+
+# Comptes à problème
+Search-ADAccount -LockedOut -UsersOnly | select Name,SamAccountName
+Search-ADAccount -AccountDisabled -UsersOnly
+Search-ADAccount -PasswordExpired
+
+# Actions
+Unlock-ADAccount jdupont
+Disable-ADAccount jdupont ; Enable-ADAccount jdupont
+Set-ADUser jdupont -Title "Comptable" -Department "Compta" -Office "Saintes"
+Get-ADUser jdupont | Move-ADObject -TargetPath "OU=Compta,{{DN}}"</code></pre>
+
+  <h3>OU et groupes</h3>
+<pre><code>New-ADOrganizationalUnit -Name "Compta" -Path "{{DN}}" -ProtectedFromAccidentalDeletion $true
+New-ADGroup -Name "GG_Compta" -GroupScope Global -GroupCategory Security -Path "OU=Groupes,{{DN}}"
+New-ADGroup -Name "DL_Compta_RW" -GroupScope DomainLocal -GroupCategory Security -Path "OU=Groupes,{{DN}}"
+Add-ADGroupMember GG_Compta -Members jdupont
+Add-ADGroupMember DL_Compta_RW -Members GG_Compta   # AGDLP
+Get-ADGroupMember GG_Compta
+Get-ADPrincipalGroupMembership jdupont | select name
+Remove-ADGroupMember GG_Compta -Members jdupont -Confirm:$false</code></pre>
+
+  <h3>AGDLP en une phrase</h3>
+  <p><b>A</b>ccounts → <b>G</b>lobal (par métier : GG_Compta) → <b>DL</b> Domaine local (par ressource/droit : DL_Compta_RW) → <b>P</b>ermissions NTFS données au DL. On ne met jamais un utilisateur directement dans les ACL.</p>
+  <div class="tw"><table>
+    <tr><th>Étendue</th><th>Contient</th><th>Usage</th></tr>
+    <tr><td>Globale</td><td>Utilisateurs/groupes globaux du même domaine</td><td>Regrouper par rôle / service</td></tr>
+    <tr><td>Domaine local</td><td>Utilisateurs, globaux, universels</td><td>Attribuer des droits sur une ressource</td></tr>
+    <tr><td>Universelle</td><td>Tout, toute la forêt</td><td>Multi-domaines</td></tr>
+  </table></div>
+
+  <h3>Poste et domaine</h3>
+<pre><code># Sur le client (session admin locale)
+Test-ComputerSecureChannel -Repair -Credential {{NB}}\administrateur
+Add-Computer -DomainName {{FQDN}} -Credential {{NB}}\administrateur -Restart
+w32tm /query /status ; w32tm /resync
+# Sur le serveur
+Get-ADComputer -Filter * | select Name,Enabled
+Get-ADDefaultDomainPasswordPolicy
+dcdiag /q ; repadmin /replsummary</code></pre>
+</section>
+
+<!-- ================= GPO ================= -->
+<section class="card" id="gpo">
+  <h2>📜 GPO</h2>
+  <h3>Règles à connaître</h3>
+  <ul>
+    <li>Ordre d'application <b>LSDOU</b> : Local → Site → Domaine → OU (la plus proche gagne).</li>
+    <li>Une GPO « utilisateur » s'applique si l'<b>utilisateur</b> est dans l'OU liée ; une GPO « ordinateur » si le <b>poste</b> y est.</li>
+    <li><b>Appliqué</b> (forcé) passe outre le <b>Blocage de l'héritage</b>.</li>
+    <li>Filtrage de sécurité : le groupe ciblé doit avoir <i>Lire</i> + <i>Appliquer</i> ; garder <i>Utilisateurs authentifiés</i> (ou <i>Ordinateurs du domaine</i>) en Lecture dans Délégation.</li>
+    <li>Politique de mot de passe du domaine : uniquement dans une GPO liée <b>au domaine</b> (Default Domain Policy). Exception par groupe = PSO (Centre d'administration AD).</li>
+  </ul>
+
+  <h3>Où trouver les paramètres courants</h3>
+  <div class="tw"><table>
+    <tr><th>Besoin</th><th>Chemin</th></tr>
+    <tr><td>Lecteur réseau</td><td>Config. utilisateur &gt; Préférences &gt; Paramètres Windows &gt; Mappages de lecteurs (action <i>Mettre à jour</i>, ciblage par groupe possible)</td></tr>
+    <tr><td>Imprimante</td><td>Config. utilisateur &gt; Préférences &gt; Paramètres du Panneau de configuration &gt; Imprimantes (ou déploiement via printmanagement.msc)</td></tr>
+    <tr><td>Fond d'écran</td><td>Config. utilisateur &gt; Stratégies &gt; Modèles d'administration &gt; Bureau &gt; Bureau &gt; Papier peint du Bureau</td></tr>
+    <tr><td>Bloquer le Panneau de config.</td><td>Config. utilisateur &gt; Stratégies &gt; Modèles d'administration &gt; Panneau de configuration</td></tr>
+    <tr><td>Mot de passe / verrouillage</td><td>Config. ordinateur &gt; Stratégies &gt; Paramètres Windows &gt; Paramètres de sécurité &gt; Stratégies de comptes</td></tr>
+    <tr><td>Installer un MSI</td><td>Config. ordinateur &gt; Stratégies &gt; Paramètres du logiciel &gt; Installation de logiciel (chemin UNC !)</td></tr>
+    <tr><td>Raccourci / fichier / registre</td><td>Préférences &gt; Paramètres Windows &gt; Raccourcis / Fichiers / Registre</td></tr>
+    <tr><td>Groupes locaux (admin local)</td><td>Config. ordinateur &gt; Préférences &gt; Paramètres du Panneau de configuration &gt; Utilisateurs et groupes locaux</td></tr>
+  </table></div>
+
+  <h3>Commandes</h3>
+<pre><code># Serveur
+New-GPO -Name "U_Lecteurs_Compta" | New-GPLink -Target "OU=Compta,{{DN}}"
+Get-GPO -All | select DisplayName,GpoStatus
+Get-GPInheritance -Target "OU=Compta,{{DN}}"
+Get-GPOReport -Name "U_Lecteurs_Compta" -ReportType Html -Path C:\gpo.html
+Backup-GPO -All -Path C:\BackupGPO
+
+# Client
+gpupdate /force
+gpresult /r
+gpresult /r /scope user
+gpresult /h C:\rapport.html /f</code></pre>
+  <p class="muted">Dans <code>gpresult /r</code> : regarder « Objets Stratégie de groupe appliqués » et surtout « <b>refusés</b> » (Filtrage : refusé / Vide / non appliqué). Événements : journal Système, source GroupPolicy (ex. 1058, 1030 = accès SYSVOL / DC).</p>
+</section>
+
+<!-- ================= PARTAGES ================= -->
+<section class="card" id="partages">
+  <h2>📁 Partages et NTFS</h2>
+  <ul>
+    <li>Bonne pratique : droit de <b>partage</b> large (Utilisateurs authentifiés : Contrôle total), restriction fine en <b>NTFS</b>.</li>
+    <li>Droit effectif réseau = le <b>plus restrictif</b> des deux. En local, seul le NTFS compte.</li>
+    <li>Un <b>refus explicite</b> l'emporte sur une autorisation. Autorisation explicite &gt; refus hérité.</li>
+    <li><b>Modification</b> suffit aux utilisateurs ; <b>Contrôle total</b> = peut changer les droits (réservé aux admins).</li>
+    <li>Énumération basée sur l'accès (ABE) : l'utilisateur ne voit que les dossiers auxquels il a droit.</li>
+  </ul>
+<pre><code>New-Item D:\Partages\Compta -ItemType Directory
+New-SmbShare -Name "Compta" -Path "D:\Partages\Compta" -FullAccess "Utilisateurs authentifiés" -FolderEnumerationMode AccessBased
+# (noms de comptes en français sur un OS FR : "Tout le monde", "Utilisateurs authentifiés", "Administrateurs")
+
+# NTFS
+icacls "D:\Partages\Compta"                                   # voir
+icacls "D:\Partages\Compta" /inheritance:d                    # couper l'héritage en copiant
+icacls "D:\Partages\Compta" /remove "Utilisateurs"
+icacls "D:\Partages\Compta" /grant "{{NB}}\DL_Compta_RW:(OI)(CI)M"
+icacls "D:\Partages\Compta" /grant "{{NB}}\DL_Compta_RO:(OI)(CI)RX"
+
+# Contrôles
+Get-SmbShare ; Get-SmbShareAccess Compta
+Get-SmbSession ; Get-SmbOpenFile | select ClientUserName,Path
+Get-SmbOpenFile | Where-Object Path -like "*facture*" | Close-SmbOpenFile -Force
+
+# Client
+net use Z: \\{{SRV}}\Compta /persistent:yes
+net use
+cmdkey /list
+klist purge</code></pre>
+  <p class="muted">(OI)(CI) = hérité par fichiers et sous-dossiers · M = Modification · RX = Lecture/exécution · F = Contrôle total. Clichés instantanés : Propriétés du volume &gt; Clichés instantanés (restauration via « Versions précédentes »). Quotas : FSRM (<code>fsrm.msc</code>).</p>
+</section>
+
+<!-- ================= DNS ================= -->
+<section class="card" id="dns">
+  <h2>🌐 DNS</h2>
+  <ul>
+    <li>Les clients du domaine doivent avoir <b>le DC comme DNS</b> ; le DC résout Internet via des <b>redirecteurs</b>.</li>
+    <li>Zone de recherche directe (nom → IP), zone inverse (IP → nom, enregistrements PTR).</li>
+    <li>A = nom→IPv4 · AAAA = IPv6 · CNAME = alias · PTR = inverse · MX = mail · SRV = services (localisation des DC).</li>
+  </ul>
+<pre><code>Get-DnsServerZone
+Add-DnsServerPrimaryZone -NetworkId "{{NET}}.0/24" -ReplicationScope Domain     # zone inverse
+Add-DnsServerResourceRecordA -ZoneName {{FQDN}} -Name srv-web -IPv4Address {{NET}}.20 -CreatePtr
+Add-DnsServerResourceRecordCName -ZoneName {{FQDN}} -Name intranet -HostNameAlias srv-web.{{FQDN}}
+Get-DnsServerResourceRecord -ZoneName {{FQDN}}
+Remove-DnsServerResourceRecord -ZoneName {{FQDN}} -Name srv-web -RRType A -Force
+Add-DnsServerForwarder -IPAddress 1.1.1.1, 8.8.8.8
+Get-DnsServerForwarder
+Clear-DnsServerCache -Force
+
+# Diagnostic
+nslookup srv-web
+Resolve-DnsName srv-web.{{FQDN}}
+nslookup -type=SRV _ldap._tcp.dc._msdcs.{{FQDN}}
+ipconfig /flushdns ; ipconfig /registerdns
+dcdiag /test:dns</code></pre>
+</section>
+
+<!-- ================= DHCP ================= -->
+<section class="card" id="dhcp">
+  <h2>📡 DHCP</h2>
+  <ul>
+    <li>Sur un domaine, le serveur DHCP doit être <b>autorisé dans l'AD</b>, sinon il ne distribue rien.</li>
+    <li>Options : <b>003</b> routeur (passerelle) · <b>006</b> serveurs DNS · <b>015</b> nom de domaine.</li>
+    <li>Plage d'exclusion (IP fixes des serveurs/imprimantes) · Réservation (même IP pour une MAC donnée).</li>
+    <li>Client en 169.254.x.x = aucune réponse DHCP. Autre sous-réseau = agent relais DHCP (ip helper) nécessaire.</li>
+  </ul>
+<pre><code>Install-WindowsFeature DHCP -IncludeManagementTools
+netsh dhcp add securitygroups ; Restart-Service DHCPServer
+Add-DhcpServerInDC -DnsName {{SRV}}.{{FQDN}} -IPAddress {{IPSRV}}
+Get-DhcpServerInDC
+
+Add-DhcpServerv4Scope -Name "LAN" -StartRange {{NET}}.100 -EndRange {{NET}}.200 -SubnetMask 255.255.255.0 -LeaseDuration 8.00:00:00 -State Active
+Set-DhcpServerv4OptionValue -ScopeId {{NET}}.0 -Router {{GW}} -DnsServer {{IPSRV}} -DnsDomain {{FQDN}}
+Add-DhcpServerv4ExclusionRange -ScopeId {{NET}}.0 -StartRange {{NET}}.100 -EndRange {{NET}}.109
+Add-DhcpServerv4Reservation -ScopeId {{NET}}.0 -IPAddress {{NET}}.50 -ClientId "AA-BB-CC-DD-EE-FF" -Name "IMP-COMPTA"
+
+Get-DhcpServerv4Scope
+Get-DhcpServerv4ScopeStatistics      # étendue pleine ?
+Get-DhcpServerv4Lease -ScopeId {{NET}}.0</code></pre>
+  <p class="muted">Dans la console : si l'icône IPv4 a une flèche rouge → serveur non autorisé ou étendue inactive (clic droit &gt; Autoriser / Activer). Journal DHCP : <code>C:\Windows\System32\dhcp\DhcpSrvLog-*.log</code>.</p>
+</section>
+
+<!-- ================= RESEAU ================= -->
+<section class="card" id="reseau">
+  <h2>🔌 Réseau (serveur et client)</h2>
+<pre><code>ipconfig /all
+Get-NetIPConfiguration
+Test-NetConnection {{SRV}} -Port 445          # SMB ; 3389 RDP, 53 DNS, 389 LDAP
+tracert 8.8.8.8 ; pathping 8.8.8.8
+route print ; arp -a
+netstat -ano | findstr :445
+
+# IP fixe sur le serveur
+New-NetIPAddress -InterfaceAlias "Ethernet" -IPAddress {{IPSRV}} -PrefixLength 24 -DefaultGateway {{GW}}
+Set-DnsClientServerAddress -InterfaceAlias "Ethernet" -ServerAddresses {{IPSRV}}
+
+# Autoriser le ping (pare-feu)
+Enable-NetFirewallRule -Name FPS-ICMP4-ERQ-In
+Get-NetFirewallProfile | select Name,Enabled</code></pre>
+</section>
+
+<!-- ================= VIRTUALBOX ================= -->
+<section class="card" id="vbox">
+  <h2>🖥️ VirtualBox (VM clientes)</h2>
+  <div class="tip"><b>À faire en premier</b> : Périphériques &gt; Presse-papier partagé &gt; <b>Bidirectionnel</b> (nécessite les Additions invité) → tu peux copier les commandes de cette page directement dans la VM. Puis prendre un <b>instantané</b> avant toute modification.</div>
+  <h3>Modes réseau</h3>
+  <div class="tw"><table>
+    <tr><th>Mode</th><th>La VM voit…</th><th>Quand l'utiliser</th></tr>
+    <tr><td>NAT</td><td>Internet seulement (IP 10.0.2.15), pas les autres VM ni le serveur</td><td>Juste besoin d'Internet</td></tr>
+    <tr><td>Réseau NAT</td><td>Internet + les autres VM du même réseau NAT</td><td>Plusieurs VM sur le même poste</td></tr>
+    <tr><td><b>Accès par pont</b></td><td>Le réseau physique (comme un vrai PC) → le serveur / le nœud</td><td>Rejoindre un domaine sur un serveur distant</td></tr>
+    <tr><td>Réseau interne</td><td>Uniquement les VM du même nom de réseau interne</td><td>Labo isolé</td></tr>
+    <tr><td>Réseau privé hôte</td><td>L'hôte et les VM de ce réseau</td><td>Échanges hôte ↔ VM</td></tr>
+  </table></div>
+  <h3>Raccourcis</h3>
+  <ul>
+    <li>Touche hôte = <b>Ctrl droit</b> (libère souris/clavier).</li>
+    <li><b>Ctrl+Alt+Suppr</b> dans la VM = <b>Hôte + Suppr</b> (ou menu Entrée &gt; Clavier).</li>
+    <li>Plein écran : Hôte + F · Ajuster la fenêtre : Hôte + G.</li>
+    <li>Additions invité : Périphériques &gt; Insérer l'image CD des Additions invité, puis lancer l'installeur dans la VM et redémarrer.</li>
+    <li>Clone : cocher « Générer de nouvelles adresses MAC », puis renommer le PC avant de le joindre au domaine.</li>
+  </ul>
+  <h3>En ligne de commande (sur l'hôte)</h3>
+<pre><code>VBoxManage list vms
+VBoxManage list runningvms
+VBoxManage startvm "Win11-Client" --type headless
+VBoxManage controlvm "Win11-Client" acpipowerbutton
+VBoxManage snapshot "Win11-Client" take "avant-exam"
+VBoxManage snapshot "Win11-Client" restore "avant-exam"
+VBoxManage showvminfo "Win11-Client" | findstr NIC</code></pre>
+</section>
+
+<!-- ================= WAC ================= -->
+<section class="card" id="wac">
+  <h2>🧭 Windows Admin Center</h2>
+  <p>Console web (Edge/Chrome) pour gérer les serveurs Windows à distance. Avertissement de certificat auto-signé : <i>Continuer</i> est normal en labo.</p>
+  <h3>Démarrer</h3>
+  <ol>
+    <li>Ouvrir l'URL donnée par le formateur (<code>https://nom-du-serveur-wac</code>).</li>
+    <li><b>+ Ajouter</b> &gt; Serveurs &gt; saisir le nom (ex. <code>{{SRV}}.{{FQDN}}</code>).</li>
+    <li>Si accès refusé : <b>Gérer en tant que</b> &gt; <code>{{NB}}\administrateur</code>.</li>
+  </ol>
+  <h3>Où trouver quoi (menu Outils à gauche)</h3>
+  <div class="tw"><table>
+    <tr><th>Besoin</th><th>Outil WAC</th></tr>
+    <tr><td>Redémarrer / arrêter un service</td><td>Services</td></tr>
+    <tr><td>Lire les journaux (4740, GroupPolicy…)</td><td>Événements</td></tr>
+    <tr><td>Créer un partage / droits</td><td>Fichiers et partage de fichiers</td></tr>
+    <tr><td>IP, DNS de la carte</td><td>Réseaux</td></tr>
+    <tr><td>Ouvrir un port / autoriser le ping</td><td>Pare-feu</td></tr>
+    <tr><td>Installer un rôle (DNS, DHCP…)</td><td>Rôles et fonctionnalités</td></tr>
+    <tr><td>Taper une commande</td><td><b>PowerShell</b> (toutes les commandes de cette page marchent)</td></tr>
+    <tr><td>Prendre la main graphiquement</td><td>Bureau à distance</td></tr>
+    <tr><td>CPU / RAM / disque</td><td>Vue d'ensemble, Processus, Stockage</td></tr>
+    <tr><td>Comptes AD, DNS, DHCP</td><td>Extensions <i>Active Directory</i>, <i>DNS</i>, <i>DHCP</i> (si installées) — sinon PowerShell ou RDP + consoles .msc</td></tr>
+    <tr><td>Mises à jour, tâches planifiées, registre</td><td>Mises à jour · Tâches planifiées · Registre</td></tr>
+  </table></div>
+  <h3>Si le serveur ne se connecte pas dans WAC</h3>
+  <ol class="prob">
+    <li>Mauvais identifiants → Gérer en tant que (compte admin du domaine).</li>
+    <li>Nom non résolu → utiliser le FQDN ou l'IP.</li>
+    <li>WinRM fermé (port 5985) → sur le serveur :</li>
+  </ol>
+<pre><code>Enable-PSRemoting -Force
+Test-WSMan {{SRV}}
+Test-NetConnection {{SRV}} -Port 5985</code></pre>
+</section>
+
+<!-- ================= LINUX ================= -->
+<section class="card" id="linux">
+  <h2>🐧 Serveur Linux</h2>
+  <p class="muted">Debian/Ubuntu par défaut ; équivalent Red Hat/Rocky indiqué entre parenthèses. Préfixer par <code>sudo</code> si tu n'es pas root.</p>
+  <h3>Connexion et infos système</h3>
+<pre><code>ssh utilisateur@{{NET}}.20
+hostnamectl ; cat /etc/os-release
+uptime ; free -h ; df -h ; top
+timedatectl</code></pre>
+  <h3>Réseau</h3>
+<pre><code>ip a                      # IP des cartes
+ip r                      # passerelle
+cat /etc/resolv.conf      # DNS utilisés
+ping -c 4 {{GW}}
+ss -tulpn                 # ports en écoute + processus
+# Config IP : Debian /etc/network/interfaces puis : systemctl restart networking
+#             Ubuntu /etc/netplan/*.yaml puis : netplan apply
+#             Red Hat : nmcli / nmtui</code></pre>
+  <h3>Services et journaux</h3>
+<pre><code>systemctl status apache2          # (httpd sur Red Hat)
+systemctl restart apache2
+systemctl enable --now ssh        # (sshd)
+systemctl --failed                # services en échec
+journalctl -u apache2 -n 50       # 50 dernières lignes du service
+journalctl -xe
+tail -f /var/log/syslog           # (/var/log/messages)
+tail -f /var/log/auth.log         # connexions (/var/log/secure)</code></pre>
+  <p class="muted">Services courants : <code>apache2</code>/<code>nginx</code> (web), <code>mariadb</code> (base GLPI), <code>ssh</code>, <code>bind9</code> (DNS), <code>isc-dhcp-server</code>, <code>smbd</code> (Samba), <code>cron</code>. GLPI en panne → vérifier apache2 + mariadb + <code>df -h</code>.</p>
+  <h3>Utilisateurs et droits</h3>
+<pre><code>adduser jdupont                   # (useradd -m jdupont ; passwd jdupont)
+passwd jdupont                    # changer le mot de passe
+passwd -u jdupont                 # déverrouiller (passwd -l = verrouiller)
+faillock --user jdupont --reset   # trop d'échecs de connexion
+chage -l jdupont                  # expiration du mot de passe
+usermod -aG sudo jdupont          # (groupe wheel sur Red Hat)
+id jdupont ; groups jdupont
+ls -l ; chmod 750 dossier ; chown jdupont:compta dossier</code></pre>
+  <p class="muted">chmod : r=4 w=2 x=1 → 7=rwx, 6=rw-, 5=r-x, 4=r-- (propriétaire / groupe / autres).</p>
+  <h3>Paquets et pare-feu</h3>
+<pre><code>apt update && apt upgrade        # (dnf upgrade)
+apt install paquet               # (dnf install paquet)
+ufw status                       # (firewall-cmd --list-all)
+ufw allow 22/tcp                 # (firewall-cmd --add-service=ssh --permanent ; firewall-cmd --reload)</code></pre>
+  <h3>Rejoindre le domaine AD (si demandé)</h3>
+<pre><code>apt install realmd sssd sssd-tools adcli packagekit
+realm discover {{FQDN}}
+realm join -U administrateur {{FQDN}}
+realm list ; id administrateur@{{FQDN}}</code></pre>
+</section>
+
+<!-- ================= MESSAGES ================= -->
+<section class="card" id="messages">
+  <h2>✉️ Modèles de messages à l'utilisateur</h2>
+  <div class="grid2">
+<div><h3>Prise en charge</h3>
+<pre><code>Bonjour [Prénom],
+Votre demande a bien été prise en compte sous le ticket n°[XXX].
+Je m'en occupe et reviens vers vous dès que possible.
+Cordialement,
+[Nom] – Support informatique</code></pre></div>
+<div><h3>Demande d'information</h3>
+<pre><code>Bonjour [Prénom],
+Afin de traiter votre demande, pourriez-vous me préciser :
+- le message d'erreur exact (capture si possible) ;
+- depuis quand le problème apparaît ;
+- le nom de votre poste.
+Le ticket est en attente de votre retour.
+Cordialement,</code></pre></div>
+<div><h3>Résolution</h3>
+<pre><code>Bonjour [Prénom],
+Le problème est résolu : [cause en termes simples].
+J'ai [action réalisée]. Vous pouvez désormais [ouvrir votre session / accéder au dossier].
+Merci de me confirmer que tout fonctionne ; sans retour, le ticket sera clos sous 48 h.
+Cordialement,</code></pre></div>
+<div><h3>Escalade N2</h3>
+<pre><code>Bonjour,
+Ticket n°[XXX] – [résumé].
+Tests réalisés : [liste]. Résultat : [...].
+Hypothèse : [...]. Hors de mon périmètre (droits / accès [X]).
+Merci de prendre le relais ; l'utilisateur est informé.</code></pre></div>
+<div><h3>Nouveau compte</h3>
+<pre><code>Bonjour [Prénom],
+Votre compte est créé. Identifiant : [login]
+Le mot de passe provisoire vous est communiqué [de vive voix / par votre responsable] ;
+il vous sera demandé de le changer à la première connexion
+(12 caractères min., majuscule, chiffre, caractère spécial).
+Cordialement,</code></pre></div>
+  </div>
+  <div class="tip">Ton : vouvoiement, pas de jargon (« votre compte était bloqué suite à plusieurs erreurs de mot de passe » plutôt que « LockedOut = True »). Ne jamais envoyer un mot de passe en clair dans le même message que l'identifiant.</div>
+</section>
+
+<!-- ================= MEMO ================= -->
+<section class="card" id="memo">
+  <h2>📋 Mémo</h2>
+  <div class="grid2">
+  <div>
+  <h3>Ports</h3>
+  <div class="tw"><table>
+    <tr><th>Port</th><th>Service</th></tr>
+    <tr><td>20/21</td><td>FTP</td></tr><tr><td>22</td><td>SSH / SFTP</td></tr><tr><td>23</td><td>Telnet</td></tr>
+    <tr><td>25 / 587 / 465</td><td>SMTP / soumission / SMTPS</td></tr><tr><td>53</td><td>DNS (UDP+TCP)</td></tr>
+    <tr><td>67/68</td><td>DHCP (UDP)</td></tr><tr><td>80 / 443</td><td>HTTP / HTTPS</td></tr>
+    <tr><td>88</td><td>Kerberos</td></tr><tr><td>110 / 995</td><td>POP3 / POP3S</td></tr>
+    <tr><td>123</td><td>NTP</td></tr><tr><td>135</td><td>RPC</td></tr><tr><td>137-139</td><td>NetBIOS</td></tr>
+    <tr><td>143 / 993</td><td>IMAP / IMAPS</td></tr><tr><td>161/162</td><td>SNMP</td></tr>
+    <tr><td>389 / 636</td><td>LDAP / LDAPS</td></tr><tr><td>445</td><td>SMB (partages)</td></tr>
+    <tr><td>514</td><td>Syslog</td></tr><tr><td>3268</td><td>Catalogue global</td></tr>
+    <tr><td>3389</td><td>RDP</td></tr><tr><td>5985/5986</td><td>WinRM</td></tr><tr><td>9100</td><td>Impression RAW</td></tr>
+  </table></div>
+  </div>
+  <div>
+  <h3>Masques</h3>
+  <div class="tw"><table>
+    <tr><th>CIDR</th><th>Masque</th><th>Hôtes</th></tr>
+    <tr><td>/8</td><td>255.0.0.0</td><td>16 777 214</td></tr>
+    <tr><td>/16</td><td>255.255.0.0</td><td>65 534</td></tr>
+    <tr><td>/22</td><td>255.255.252.0</td><td>1 022</td></tr>
+    <tr><td>/23</td><td>255.255.254.0</td><td>510</td></tr>
+    <tr><td>/24</td><td>255.255.255.0</td><td>254</td></tr>
+    <tr><td>/25</td><td>255.255.255.128</td><td>126</td></tr>
+    <tr><td>/26</td><td>255.255.255.192</td><td>62</td></tr>
+    <tr><td>/27</td><td>255.255.255.224</td><td>30</td></tr>
+    <tr><td>/28</td><td>255.255.255.240</td><td>14</td></tr>
+    <tr><td>/29</td><td>255.255.255.248</td><td>6</td></tr>
+    <tr><td>/30</td><td>255.255.255.252</td><td>2</td></tr>
+  </table></div>
+  <p class="muted">Privées : 10.0.0.0/8 · 172.16.0.0/12 · 192.168.0.0/16. APIPA : 169.254.0.0/16. Boucle : 127.0.0.1.</p>
+  <h3>Événements utiles (journal Sécurité du DC)</h3>
+  <div class="tw"><table>
+    <tr><th>ID</th><th>Signification</th></tr>
+    <tr><td>4624 / 4625</td><td>Ouverture de session réussie / échouée</td></tr>
+    <tr><td>4740</td><td>Compte verrouillé (indique le poste source)</td></tr>
+    <tr><td>4720 / 4726</td><td>Compte créé / supprimé</td></tr>
+    <tr><td>4723 / 4724</td><td>Changement / réinitialisation de mot de passe</td></tr>
+    <tr><td>4728 / 4732</td><td>Ajout à un groupe global / local</td></tr>
+  </table></div>
+  </div>
+  </div>
+</section>
+
+<!-- ================= SCRIPTS ================= -->
+<section class="card" id="scripts">
+  <h2>🤖 Scripts prêts à l'emploi</h2>
+  <p class="muted">À coller dans PowerShell ISE (ou l'outil PowerShell de Windows Admin Center). Tester d'abord sur un seul compte.</p>
+  <h3>Créer des utilisateurs depuis un CSV</h3>
+<pre><code># C:\utilisateurs.csv (séparateur ;) :
+# Prenom;Nom;Service
+# Jean;Dupont;Compta
+Import-Csv C:\utilisateurs.csv -Delimiter ";" -Encoding UTF8 | ForEach-Object {
+  $login = ($_.Prenom.Substring(0,1) + $_.Nom).ToLower()
+  New-ADUser -Name "$($_.Prenom) $($_.Nom)" -GivenName $_.Prenom -Surname $_.Nom `
+   -SamAccountName $login -UserPrincipalName "$login@{{FQDN}}" `
+   -Path "OU=$($_.Service),{{DN}}" -Department $_.Service `
+   -AccountPassword (ConvertTo-SecureString "Bienvenue@2026!" -AsPlainText -Force) `
+   -ChangePasswordAtLogon $true -Enabled $true
+  Add-ADGroupMember "GG_$($_.Service)" -Members $login
+  Write-Host "Créé : $login" -ForegroundColor Green
+}</code></pre>
+  <h3>Rapports utiles (export CSV pour le ticket)</h3>
+<pre><code># Comptes inactifs depuis 90 jours
+Search-ADAccount -AccountInactive -TimeSpan 90.00:00:00 -UsersOnly |
+ Select-Object Name,SamAccountName,LastLogonDate |
+ Export-Csv C:\inactifs.csv -NoTypeInformation -Delimiter ";" -Encoding UTF8
+
+# Utilisateurs d'une OU avec leurs groupes
+Get-ADUser -Filter * -SearchBase "OU=Utilisateurs,{{DN}}" -Properties MemberOf |
+ Select-Object Name,SamAccountName,@{n='Groupes';e={($_.MemberOf | ForEach-Object {($_ -split ',')[0] -replace 'CN='}) -join ', '}} |
+ Export-Csv C:\utilisateurs_groupes.csv -NoTypeInformation -Delimiter ";" -Encoding UTF8
+
+# Déverrouiller tous les comptes verrouillés
+Search-ADAccount -LockedOut -UsersOnly | Unlock-ADAccount -PassThru | Select-Object Name</code></pre>
+  <h3>Vérifier les services critiques</h3>
+<pre><code>$services = "NTDS","DNS","DHCPServer","Netlogon","LanmanServer","Spooler"
+foreach ($s in $services) {
+  $svc = Get-Service $s -ErrorAction SilentlyContinue
+  if (-not $svc) { Write-Host "$s : absent" -ForegroundColor Yellow }
+  elseif ($svc.Status -ne 'Running') { Write-Host "$s : ARRÊTÉ" -ForegroundColor Red }
+  else { Write-Host "$s : OK" -ForegroundColor Green }
+}</code></pre>
+  <h3>Linux : alerte disque + sauvegarde planifiée</h3>
+<pre><code>#!/bin/bash
+# /opt/scripts/check_disk.sh : alerte au-delà de 80 %
+seuil=80
+df -h --output=pcent,target | tail -n +2 | while read p m; do
+  u=${p%\%}
+  [ "$u" -ge "$seuil" ] && echo "ALERTE $m : $p utilisé"
+done
+
+# /opt/scripts/sauvegarde.sh : archive de /etc
+tar -czf /backup/etc-$(date +%F).tar.gz /etc
+
+# Planifier (crontab -e) : tous les jours à 2 h
+# 0 2 * * * /opt/scripts/sauvegarde.sh
+# chmod +x /opt/scripts/*.sh</code></pre>
+</section>
+
+<!-- ================= SAUVEGARDE ================= -->
+<section class="card" id="sauvegarde">
+  <h2>💾 Sauvegarde et restauration</h2>
+  <h3>« J'ai supprimé / écrasé un fichier sur le partage »</h3>
+  <ol class="prob">
+    <li><b>Versions précédentes</b> (clichés instantanés) : clic droit sur le dossier &gt; Propriétés &gt; Versions précédentes &gt; Restaurer.</li>
+    <li>Corbeille du poste si le fichier était local.</li>
+    <li>Restauration depuis la sauvegarde (Windows Server Backup / outil de l'entreprise).</li>
+  </ol>
+<pre><code>vssadmin list shadows                  # clichés existants
+vssadmin create shadow /for=D:         # créer un cliché maintenant (serveur)
+# Activation planifiée : Propriétés du volume D: > Clichés instantanés > Activer</code></pre>
+  <h3>« Un compte AD a été supprimé par erreur »</h3>
+<pre><code># Corbeille AD activée ? (irréversible, à activer avant l'incident)
+Get-ADOptionalFeature -Filter 'Name -like "Recycle Bin Feature"' | Select-Object Name,EnabledScopes
+Enable-ADOptionalFeature -Identity "Recycle Bin Feature" -Scope ForestOrConfigurationSet -Target {{FQDN}}
+
+# Retrouver et restaurer le compte
+Get-ADObject -Filter 'SamAccountName -eq "jdupont"' -IncludeDeletedObjects
+Get-ADObject -Filter 'SamAccountName -eq "jdupont"' -IncludeDeletedObjects | Restore-ADObject</code></pre>
+  <p class="muted">Sans corbeille AD : restauration autoritaire depuis une sauvegarde de l'état système (mode DSRM). Le compte recréé à la main n'a plus le même SID, donc plus les mêmes droits.</p>
+  <h3>Windows Server Backup</h3>
+<pre><code>Install-WindowsFeature Windows-Server-Backup
+wbadmin start backup -backupTarget:E: -include:C: -allCritical -quiet
+wbadmin start systemstatebackup -backupTarget:E: -quiet
+wbadmin get versions
+wbadmin get items -version:MM/JJ/AAAA-HH:MM</code></pre>
+  <p class="muted">Règle <b>3-2-1</b> : 3 copies des données, sur 2 supports différents, dont 1 hors site. Sauvegarde complète / incrémentielle (depuis la dernière sauvegarde) / différentielle (depuis la dernière complète). Une sauvegarde non testée n'est pas une sauvegarde.</p>
+</section>
+
+<!-- ================= ENTRETIEN ================= -->
+<section class="card" id="entretien">
+  <h2>🗣️ Entretien technique : questions probables</h2>
+  <p class="muted">Réponds en 3 temps : définition courte → exemple de ton lab → bonne pratique.</p>
+  <details><summary>Pourquoi as-tu fait comme ça ? Et si ça n'avait pas marché ?</summary>
+  <p>Refaire le fil : symptôme → hypothèses par probabilité → tests → cause → correction → vérification. Citer l'étape suivante que tu aurais faite (autre test, escalade N2 avec les éléments).</p></details>
+  <details><summary>Droits de partage vs NTFS ?</summary>
+  <p>Les deux se cumulent à travers le réseau et c'est le plus restrictif qui gagne. Bonne pratique : partage large, restriction en NTFS, droits donnés à des groupes DL (AGDLP).</p></details>
+  <details><summary>Pourquoi AGDLP ?</summary>
+  <p>Séparer le « qui » (groupes globaux par métier) du « quoi » (groupes DL par ressource). Un nouvel arrivant = l'ajouter à un seul groupe métier. Lisible, auditable, pas d'utilisateur en direct dans les ACL.</p></details>
+  <details><summary>Fonctionnement du DHCP ?</summary>
+  <p><b>DORA</b> : Discover (broadcast du client) → Offer (serveur) → Request (client) → Ack (serveur). Renouvellement du bail à 50 %. Autre sous-réseau = relais DHCP.</p></details>
+  <details><summary>Pourquoi les clients doivent-ils utiliser le DC comme DNS ?</summary>
+  <p>Ils trouvent le domaine grâce aux enregistrements SRV (_ldap._tcp.dc._msdcs) que seul le DNS AD connaît. La box ne les a pas → impossible de joindre le domaine ou GPO non appliquées. Le DC sort sur Internet via ses redirecteurs.</p></details>
+  <details><summary>Ordre d'application des GPO ?</summary>
+  <p>LSDOU (Local, Site, Domaine, OU), la dernière appliquée gagne. Exceptions : Appliqué (forcé), Blocage de l'héritage, filtrage de sécurité/WMI, mode bouclage.</p></details>
+  <details><summary>Kerberos vs NTLM ?</summary>
+  <p>Kerberos : tickets délivrés par le KDC (sur le DC), authentification mutuelle, nécessite DNS correct et horloges à moins de 5 min d'écart. NTLM : ancien protocole challenge/réponse, utilisé en secours (accès par IP, poste hors domaine).</p></details>
+  <details><summary>Incident, problème, changement ?</summary>
+  <p>Incident = interruption à rétablir vite. Problème = cause racine d'un ou plusieurs incidents. Changement = modification planifiée et validée de l'infrastructure.</p></details>
+  <details><summary>Modèle OSI ?</summary>
+  <p>1 Physique (câble, hub) · 2 Liaison (MAC, switch, VLAN) · 3 Réseau (IP, routeur) · 4 Transport (TCP/UDP, ports) · 5 Session · 6 Présentation · 7 Application (HTTP, DNS…). Dépannage conseillé de la couche 1 vers la 7.</p></details>
+  <details><summary>TCP vs UDP ?</summary>
+  <p>TCP : connexion (poignée de main en 3 temps), fiable, ordonné (HTTP, SMB, RDP). UDP : sans connexion, rapide, sans garantie (DNS, DHCP, VoIP, streaming).</p></details>
+  <details><summary>RAID ?</summary>
+  <p>RAID 0 : performance, aucune tolérance. RAID 1 : miroir, 1 disque peut tomber. RAID 5 : parité, 3 disques mini, 1 panne tolérée. RAID 6 : 2 pannes tolérées. RAID 10 : miroir + agrégat. Le RAID n'est pas une sauvegarde.</p></details>
+  <details><summary>Sécuriser un poste / un serveur ?</summary>
+  <p>Moindre privilège (pas d'admin pour les utilisateurs, LAPS pour l'admin local), mises à jour, antivirus/EDR, pare-feu, politique de mots de passe + MFA, désactivation des services inutiles, journaux centralisés, sauvegardes testées.</p></details>
+  <details><summary>VLAN, switch, routeur ?</summary>
+  <p>Switch : couche 2, commute par MAC dans un réseau. VLAN : segmenter logiquement un switch (sécurité, broadcast). Routeur : couche 3, fait communiquer des réseaux/VLAN différents. Trunk (802.1Q) : transporte plusieurs VLAN sur un lien.</p></details>
+</section>
+
+<!-- ================= ANGLAIS ================= -->
+<section class="card" id="anglais">
+  <h2>🇬🇧 Anglais technique (questionnaire)</h2>
+  <p class="muted">Méthode : lire les titres et le texte en gras d'abord, repérer les mots de consigne (must, should, may), répondre en français avec tes mots.</p>
+  <div class="tw"><table>
+    <tr><th>Anglais</th><th>Français</th><th>Anglais</th><th>Français</th></tr>
+    <tr><td>troubleshoot</td><td>dépanner</td><td>workaround</td><td>contournement</td></tr>
+    <tr><td>outage</td><td>panne, coupure</td><td>issue</td><td>problème</td></tr>
+    <tr><td>deprecated</td><td>obsolète (bientôt retiré)</td><td>prerequisite</td><td>prérequis</td></tr>
+    <tr><td>lease</td><td>bail (DHCP)</td><td>scope</td><td>étendue / portée</td></tr>
+    <tr><td>forwarder</td><td>redirecteur (DNS)</td><td>gateway</td><td>passerelle</td></tr>
+    <tr><td>subnet mask</td><td>masque de sous-réseau</td><td>throughput</td><td>débit</td></tr>
+    <tr><td>to grant / to revoke</td><td>accorder / retirer (droits)</td><td>inheritance</td><td>héritage</td></tr>
+    <tr><td>ownership</td><td>propriété (propriétaire)</td><td>share / drive mapping</td><td>partage / lecteur réseau</td></tr>
+    <tr><td>lockout</td><td>verrouillage (compte)</td><td>expiry / expiration</td><td>expiration</td></tr>
+    <tr><td>enforce</td><td>imposer / forcer</td><td>mandatory</td><td>obligatoire</td></tr>
+    <tr><td>rollback</td><td>retour arrière</td><td>snapshot</td><td>instantané</td></tr>
+    <tr><td>backup / restore</td><td>sauvegarde / restauration</td><td>retention</td><td>durée de conservation</td></tr>
+    <tr><td>failover</td><td>basculement</td><td>redundancy</td><td>redondance</td></tr>
+    <tr><td>hardening</td><td>durcissement (sécurité)</td><td>least privilege</td><td>moindre privilège</td></tr>
+    <tr><td>release notes</td><td>notes de version</td><td>feature</td><td>fonctionnalité</td></tr>
+    <tr><td>deployment</td><td>déploiement</td><td>compliance</td><td>conformité</td></tr>
+    <tr><td>must / must not</td><td>obligation / interdiction</td><td>should / may</td><td>recommandé / possible</td></tr>
+  </table></div>
+</section>
+
+<!-- ================= LIENS ================= -->
+<section class="card" id="liens">
+  <h2>🔗 Liens</h2>
+  <ul>
+    <li><a href="https://learn.microsoft.com/fr-fr/powershell/module/activedirectory/" target="_blank" rel="noopener">Module PowerShell ActiveDirectory (Microsoft Learn)</a></li>
+    <li><a href="https://learn.microsoft.com/fr-fr/powershell/module/grouppolicy/" target="_blank" rel="noopener">Module GroupPolicy</a> · <a href="https://learn.microsoft.com/fr-fr/powershell/module/dnsserver/" target="_blank" rel="noopener">DnsServer</a> · <a href="https://learn.microsoft.com/fr-fr/powershell/module/dhcpserver/" target="_blank" rel="noopener">DhcpServer</a> · <a href="https://learn.microsoft.com/fr-fr/powershell/module/smbshare/" target="_blank" rel="noopener">SmbShare</a></li>
+    <li><a href="https://learn.microsoft.com/fr-fr/windows-server/administration/windows-commands/windows-commands" target="_blank" rel="noopener">Commandes Windows (icacls, gpresult, netsh…)</a></li>
+    <li><a href="https://ss64.com/ps/" target="_blank" rel="noopener">SS64 – référence PowerShell</a> · <a href="https://ss64.com/nt/" target="_blank" rel="noopener">SS64 – CMD</a></li>
+    <li><a href="https://glpi-user-documentation.readthedocs.io/fr/latest/" target="_blank" rel="noopener">Documentation utilisateur GLPI</a></li>
+    <li><a href="https://www.it-connect.fr/" target="_blank" rel="noopener">IT-Connect (tutos Windows Server en français)</a></li>
+  </ul>
+</section>
+
+<p class="muted" style="text-align:center">Mémo personnel de révision – TSSR 2026</p>
+</main>
+
+<script>
+(function(){
+  // ---- Thème ----
+  const root=document.documentElement;
+  function store(k,v){try{localStorage.setItem(k,v)}catch(e){}}
+  function load(k){try{return localStorage.getItem(k)}catch(e){return null}}
+  const t=load('theme'); if(t) root.setAttribute('data-theme',t);
+  document.getElementById('theme').onclick=function(){
+    const dark=root.getAttribute('data-theme')?root.getAttribute('data-theme')==='dark':matchMedia('(prefers-color-scheme: dark)').matches;
+    const n=dark?'light':'dark'; root.setAttribute('data-theme',n); store('theme',n);
+  };
+
+  // ---- Variables ----
+  const inputs=[...document.querySelectorAll('[data-v]')];
+  inputs.forEach(i=>{const s=load('v_'+i.dataset.v); if(s) i.value=s;});
+  const nodes=[];
+  document.querySelectorAll('code').forEach(c=>{
+    if(c.textContent.indexOf('{{')>-1){c.dataset.tpl=c.textContent; nodes.push(c);}
+  });
+  function vals(){
+    const v={}; inputs.forEach(i=>v[i.dataset.v]=i.value.trim());
+    v.DN=v.FQDN.split('.').filter(Boolean).map(p=>'DC='+p).join(',');
+    return v;
+  }
+  function render(){
+    const v=vals();
+    document.getElementById('dnview').textContent=v.DN;
+    nodes.forEach(c=>{c.textContent=c.dataset.tpl.replace(/\{\{(\w+)\}\}/g,(m,k)=>v[k]!==undefined?v[k]:m);});
+  }
+  inputs.forEach(i=>i.addEventListener('input',()=>{store('v_'+i.dataset.v,i.value);render();}));
+  render();
+
+  // ---- Boutons copier ----
+  document.querySelectorAll('pre').forEach(p=>{
+    const b=document.createElement('button'); b.className='cp'; b.textContent='Copier';
+    b.onclick=function(){
+      const txt=p.querySelector('code').textContent;
+      const done=()=>{b.textContent='✓ Copié';setTimeout(()=>b.textContent='Copier',1200);};
+      if(navigator.clipboard&&window.isSecureContext){navigator.clipboard.writeText(txt).then(done,fallback);}else fallback();
+      function fallback(){const ta=document.createElement('textarea');ta.value=txt;document.body.appendChild(ta);ta.select();try{document.execCommand('copy');done();}catch(e){}ta.remove();}
+    };
+    p.appendChild(b);
+  });
+
+  // ---- Recherche ----
+  const norm=s=>s.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'');
+  const cards=[...document.querySelectorAll('.card')];
+  document.getElementById('q').addEventListener('input',function(){
+    const q=norm(this.value.trim());
+    cards.forEach(c=>{
+      if(c.id==='vars'){c.classList.toggle('hidden',!!q);return;}
+      const hit=!q||norm(c.textContent).indexOf(q)>-1;
+      c.classList.toggle('hidden',!hit);
+      if(q&&hit) c.querySelectorAll('details').forEach(d=>{d.open=norm(d.textContent).indexOf(q)>-1;});
+    });
+  });
+  document.addEventListener('keydown',e=>{if(e.key==='/'&&document.activeElement.tagName!=='INPUT'){e.preventDefault();document.getElementById('q').focus();}});
+})();
+</script>
+</body>
+</html>
