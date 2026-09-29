@@ -1,6 +1,6 @@
 # Mise en ligne sur GitHub Pages avec ton nom de domaine
 
-1. Crée un dépôt public sur GitHub (ex. `memo-tssr`) et dépose à la racine : `index.html` (accueil), `diag.html`, `revision.html`, `examen.html`, `memo.html`, `robots.txt` **et le dossier `assets/`** (style, scripts et données : sans lui, les pages ne fonctionnent pas).
+1. Crée un dépôt public sur GitHub (ex. `memo-tssr`) et dépose à la racine : `index.html` (accueil), `diag.html`, `commandes.html`, `revision.html`, `examen.html`, `memo.html`, `robots.txt` **et le dossier `assets/`** (style, scripts et données : sans lui, les pages ne fonctionnent pas).
 2. Dépôt > **Settings > Pages** : Source = *Deploy from a branch*, branche `main`, dossier `/ (root)`.
 3. Toujours dans Pages, champ **Custom domain** : saisis ton domaine (ex. `memo.tondomaine.fr` ou `tondomaine.fr`). GitHub crée le fichier `CNAME`.
 4. Chez ton registrar (zone DNS) :

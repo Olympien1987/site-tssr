@@ -49,7 +49,9 @@
     <div class="count">
       <div class="big" id="jx">J-?</div>
       <div class="lab" id="jlab">avant l'examen</div>
-      <label class="lab" style="margin-top:6px">Date de l'examen <input type="date" id="jdate" aria-label="Date de l'examen"></label>
+      <div class="lab" id="jlab2" style="margin-top:8px;font-weight:600"></div>
+      <label class="lab" style="margin-top:6px">Écrit + phase 1 <input type="date" id="jdate" aria-label="Date de l'écrit et de la phase 1"></label>
+      <label class="lab">Phase 2 jury <input type="date" id="jdate2" aria-label="Date de la phase 2"></label>
     </div>
   </div>
 
@@ -58,6 +60,11 @@
       <span class="ic">🔎</span><h2>Outil de diagnostic</h2>
       <p>Assistant pas à pas : du symptôme à la cause, avec les commandes et le ticket GLPI prêt à coller. Plus de 200 commandes classées.</p>
       <span class="go">Ouvrir →</span>
+    </a>
+    <a class="card tile" href="commandes.html">
+      <span class="ic">⌨️</span><h2>Commandes</h2>
+      <p>PowerShell, CMD et Linux prêtes à copier : à quoi elles servent, comment s'en servir, quoi regarder. Cluster, iSCSI, Hyper-V, PuTTY, WinSCP inclus.</p>
+      <span class="go">Chercher →</span>
     </a>
     <a class="card tile" href="revision.html">
       <span class="ic">📚</span><h2>Révision TSSR</h2>
@@ -87,6 +94,22 @@
     </div>
   </div>
 
+  <div class="grid2">
+    <div class="card">
+      <h2>🎯 Checklist du 8 octobre</h2>
+      <p class="muted">À cocher le jour J. Se remet à zéro avec le bouton en bas.</p>
+      <div id="jj"></div>
+    </div>
+    <div class="card">
+      <h2>🗓️ Calendrier</h2>
+      <ul class="todo">
+        <li><span>📝</span><span class="t"><b>Jeu. 8 oct. matin</b> : arrivée 8 h 30, écrit 9 h 30 – 11 h 30, <b>questions fermées</b> (papier / Word).</span><a class="btn sm" href="examen.html#chrono">S'entraîner</a></li>
+        <li><span>🖥️</span><span class="t"><b>Jeu. 8 oct. 13 h 30 – 15 h</b> : phase 1 sans jury. Infra Windows + Linux, cluster, ticket GLPI tiré au sort. PuTTY, WinSCP, RDP, Internet contrôlé.</span><a class="btn sm" href="commandes.html">Commandes</a></li>
+        <li><span>👥</span><span class="t"><b>Jeu. 15 oct.</b> : phase 2 (15 min de préparation + 45 min de jury), puis entretien technique (45 min) et entretien final (20 min).</span><a class="btn sm" href="examen.html#oral">Simuler</a></li>
+      </ul>
+    </div>
+  </div>
+
   <div class="card">
     <h2>⚙️ Variables de l'examen</h2>
     <p class="muted">Remplis-les au début de l'épreuve : les commandes de toutes les pages (diagnostic, mémo) utilisent ces valeurs.</p>
@@ -106,18 +129,42 @@
   const {load, store, loadJ, esc, fmt, ask, toast, VAR_DEFAULTS} = TSSR;
 
   // ---- Compte à rebours ----
-  const jd = document.getElementById('jdate');
+  const jd = document.getElementById('jdate'), jd2 = document.getElementById('jdate2');
+  const daysTo = d => Math.ceil((new Date(d + 'T00:00:00') - new Date(new Date().toDateString())) / 864e5);
+  const longDate = d => new Date(d + 'T08:00:00').toLocaleDateString('fr-FR', {weekday:'long', day:'numeric', month:'long'});
   function countdown(){
-    const d = TSSR.examDate(); jd.value = d;
-    const t = new Date(d + 'T08:00:00'), now = new Date();
-    const days = Math.ceil((new Date(d + 'T00:00:00') - new Date(now.toDateString())) / 864e5);
-    const big = document.getElementById('jx'), lab = document.getElementById('jlab');
-    if(days > 0){ big.textContent = 'J-' + days; lab.textContent = `avant l'examen (${t.toLocaleDateString('fr-FR', {weekday:'long', day:'numeric', month:'long'})})`; }
-    else if(days === 0){ big.textContent = 'Jour J'; lab.textContent = 'Bon courage, tu es prêt(e) !'; }
-    else { big.textContent = '✓'; lab.textContent = 'Examen passé'; }
+    const d1 = TSSR.examDate(), d2 = load('examDate2') || '2026-10-15';
+    jd.value = d1; jd2.value = d2;
+    const n1 = daysTo(d1), n2 = daysTo(d2);
+    const big = document.getElementById('jx'), lab = document.getElementById('jlab'), lab2 = document.getElementById('jlab2');
+    if(n1 > 0){ big.textContent = 'J-' + n1; lab.textContent = `avant l'écrit et la phase 1 (${longDate(d1)})`; lab2.textContent = n2 > 0 ? `Phase 2 avec le jury : J-${n2} (${longDate(d2)})` : ''; }
+    else if(n1 === 0){ big.textContent = 'Jour J'; lab.textContent = 'Écrit ce matin, phase 1 cet après-midi. Tu es prêt(e) !'; lab2.textContent = n2 > 0 ? `Phase 2 : J-${n2}` : ''; }
+    else if(n2 > 0){ big.textContent = 'J-' + n2; lab.textContent = `avant la phase 2 avec le jury (${longDate(d2)})`; lab2.textContent = 'Écrit et phase 1 : faits ✓'; }
+    else if(n2 === 0){ big.textContent = 'Jour J'; lab.textContent = 'Phase 2 et entretiens aujourd\'hui. Bon courage !'; lab2.textContent = ''; }
+    else { big.textContent = '✓'; lab.textContent = 'Examen passé'; lab2.textContent = ''; }
   }
   jd.onchange = () => { if(jd.value){ store('examDate', jd.value); countdown(); plan(); } };
+  jd2.onchange = () => { if(jd2.value){ store('examDate2', jd2.value); countdown(); } };
   countdown();
+
+  // ---- Checklist du jour J ----
+  const JJ = [
+    "Arriver à 8 h 30 avec pièce d'identité, convocation et chargeur",
+    "Écrit : lire tout le sujet, répondre d'abord aux questions sûres, ne rien laisser vide",
+    "Phase 1 : ouvrir ce site (orchflow.fr) et remplir les variables avec le plan d'adressage",
+    "Lire tout le sujet de la phase 1 et lister les demandes avant de toucher à l'infra",
+    "Prendre un instantané / point de contrôle des VM si c'est autorisé",
+    "Ouvrir le ticket GLPI tout de suite (type, catégorie, urgence, impact)",
+    "Faire une capture d'écran après chaque étape, noter chaque test dans le ticket",
+    "Cluster : vérifier nœuds, rôles et CSV dans cluadmin.msc avant toute action",
+    "Linux : sauvegarder un fichier de conf avant de le modifier (cp fichier fichier.bak)",
+    "10 dernières minutes : tout retester et passer le ticket en Résolu avec la solution",
+  ];
+  const jjState = loadJ('jj_check', {});
+  const jjBox = document.getElementById('jj');
+  jjBox.innerHTML = JJ.map((x, i) => `<label style="display:flex;gap:10px;align-items:flex-start;padding:6px 0;border-top:${i ? '1px solid var(--line)' : '0'};cursor:pointer">
+    <input type="checkbox" data-i="${i}" ${jjState[i] ? 'checked' : ''} style="margin-top:4px"><span>${esc(x)}</span></label>`).join('');
+  jjBox.querySelectorAll('input').forEach(c => c.onchange = () => { jjState[c.dataset.i] = c.checked; TSSR.saveJ('jj_check', jjState); });
 
   // ---- Progression ----
   const marks = loadJ('rev_fc', {});
@@ -155,6 +202,7 @@
     else if(fcKnown < FC.length) T.push(['🃏', `Faire 20 flashcards (${FC.length - fcKnown} pas encore sues).`, 'revision.html#fc', 'Réviser']);
     if(weak) T.push(['🎯', `Reprendre tes ${weak} question${weak > 1 ? 's' : ''} de QCM ratée${weak > 1 ? 's' : ''}.`, 'revision.html#qcm', 'QCM']);
     else T.push(['✅', 'Faire un QCM de 20 questions tous thèmes.', 'revision.html#qcm', 'QCM']);
+    if(!loadJ('cmd_favs', []).length) T.push(['⭐', 'Mettre en favoris (★) les commandes cluster, iSCSI et Linux dont tu auras besoin le 8.', 'commandes.html#clu', 'Commandes']);
     T.push(['🧮', 'Un exercice de sous-réseau (5 min).', 'revision.html#sn', 'Calculer']);
     if(!(eA && eA.written)) T.push(['🗒️', "Bloquer 2 h pour l'écrit blanc A, sans le mémo.", 'examen.html#A', 'Écrit A']);
     else if(!(eB && eB.written)) T.push(['🗒️', "Bloquer 2 h pour l'écrit blanc B.", 'examen.html#B', 'Écrit B']);
@@ -165,14 +213,11 @@
   plan();
 
   // ---- Variables ----
-  const LABELS = {FQDN:'Domaine (FQDN)', NB:'Nom NetBIOS', SRV:'Nom du serveur', IPSRV:'IP du serveur', NET:'Réseau (3 octets)', GW:'Passerelle', USER:'Utilisateur test', SHARE:'Partage'};
-  const vb = document.getElementById('vars');
-  vb.innerHTML = Object.keys(LABELS).map(k => `<label>${LABELS[k]}<input data-v="${k}" value="${esc(load('v_' + k) || VAR_DEFAULTS[k])}"></label>`).join('');
-  vb.querySelectorAll('input').forEach(i => i.addEventListener('input', () => store('v_' + i.dataset.v, i.value)));
+  TSSR.varsPanel(document.getElementById('vars'));
 
   document.getElementById('resetAll').onclick = () => ask('Effacer toute ta progression (flashcards, QCM, examens, réponses aux écrits) ? Les variables et le thème sont conservés.', 'Tout effacer').then(ok => {
     if(!ok) return;
-    ['rev_fc', 'qcm_stats', 'qcm_hist', 'exam_hist', 'exam_A', 'exam_B', 'rev_A', 'rev_B', 'tm_A', 'tm_B', 'sn_score', 'oral_hist', 'diag_hist'].forEach(k => { try{ localStorage.removeItem(k); }catch(e){} });
+    ['rev_fc', 'qcm_stats', 'qcm_hist', 'exam_hist', 'exam_A', 'exam_B', 'rev_A', 'rev_B', 'tm_A', 'tm_B', 'sn_score', 'oral_hist', 'diag_hist', 'jj_check'].forEach(k => { try{ localStorage.removeItem(k); }catch(e){} });
     toast('Progression effacée'); setTimeout(() => location.reload(), 600);
   });
 })();

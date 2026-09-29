@@ -31,25 +31,11 @@
 .meta{display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:8px;margin:10px 0}
 .meta div{background:var(--bg);border:1px solid var(--line);border-radius:8px;padding:6px 10px;font-size:13px}
 .meta div b{display:block;font-size:14px}
-/* Liste de commandes */
-.row{display:grid;grid-template-columns:minmax(260px,1.1fr) 1.4fr;gap:4px 16px;padding:9px 0;border-top:1px solid var(--line)}
-.row:first-of-type{border-top:0}
-.desc .look{display:block;color:var(--muted);font-size:13.5px;margin-top:2px}
-.desc .look::before{content:"👁 "}
-.card p.intro{margin:-4px 0 10px;color:var(--muted);font-size:13.5px}
-@media (max-width:700px){.row{grid-template-columns:1fr}}
 </style>
 <script src="assets/app.js"></script>
 </head>
 <body>
-<header id="site-head" data-page="diag">
-  <div class="tabs" id="tabs">
-    <button data-tab="wz" class="on">🧭 Assistant de dépannage</button>
-    <button data-tab="cmds">📋 Commandes</button>
-  </div>
-  <input id="q" data-search type="search" placeholder="Filtrer les commandes : dns, 169.254, verrouillé, port…  ( / )" autocomplete="off" style="flex:1;min-width:200px" class="hidden">
-  <nav class="chips hidden" id="nav" style="width:100%"></nav>
-</header>
+<header id="site-head" data-page="diag"></header>
 
 <main>
 <section id="tab-wz">
@@ -59,253 +45,17 @@
   </div>
   <div id="wz"></div>
 </section>
+<details class="card" id="varsBox" style="margin-top:16px"><summary>⚙️ Variables (plan d'adressage)</summary><p class="muted">Les commandes de l'assistant et de la page <a href="commandes.html">Commandes</a> utilisent ces valeurs.</p><div class="vars" id="vars"></div></details>
 
-<section id="tab-cmds" class="hidden">  <section class="card" id="vars">
-    <h2>⚙️ Variables</h2>
-    <p class="intro">Les mêmes que sur le mémo (partagées automatiquement). Clic sur une commande = copiée.</p>
-    <div class="vars">
-      <label>Domaine (FQDN)<input data-v="FQDN" value="domaine.local"></label>
-      <label>NetBIOS<input data-v="NB" value="DOMAINE"></label>
-      <label>Serveur<input data-v="SRV" value="SRV-DC1"></label>
-      <label>IP serveur<input data-v="IPSRV" value="192.168.10.10"></label>
-      <label>Réseau (3 octets)<input data-v="NET" value="192.168.10"></label>
-      <label>Passerelle<input data-v="GW" value="192.168.10.254"></label>
-      <label>Utilisateur test<input data-v="USER" value="jdupont"></label>
-      <label>Partage<input data-v="SHARE" value="Compta"></label>
-    </div>
-  </section>
-  <div id="list"></div>
-  <p style="text-align:center;color:var(--muted);font-size:13px">Ordre conseillé : physique → IP → passerelle → DNS → domaine → droits → service.</p>
-</section>
 </main>
-<!--
-Format : "## id | Titre | intro" pour une section,
-puis une ligne par commande : commande ¦ à quoi elle sert ¦ ce qu'il faut regarder (optionnel)
--->
-<script type="text/plain" id="data">
-## net | 🌐 Réseau Windows (CMD) | Tout client ou serveur Windows. Invite de commandes ou PowerShell.
-ipconfig ¦ Affiche IP, masque et passerelle de chaque carte. ¦ 169.254.x.x = aucune réponse DHCP. Pas de passerelle = pas d'accès hors réseau.
-ipconfig /all ¦ Détail complet : MAC, DHCP activé ou non, serveur DHCP, bail, serveurs DNS, suffixe DNS. ¦ Les « Serveurs DNS » doivent être le DC ({{IPSRV}}), pas la box.
-ipconfig /release ¦ Libère l'adresse obtenue par DHCP. ¦ À enchaîner avec /renew.
-ipconfig /renew ¦ Redemande une adresse au serveur DHCP. ¦ Erreur ou délai = serveur DHCP injoignable (étendue, service, relais, mode réseau VM).
-ipconfig /flushdns ¦ Vide le cache DNS du poste. ¦ À faire après une modif d'enregistrement DNS.
-ipconfig /displaydns ¦ Affiche le cache DNS local. ¦ Repérer une ancienne IP mise en cache.
-ipconfig /registerdns ¦ Réenregistre le poste dans le DNS (enregistrement A). ¦ Le poste est introuvable par son nom depuis le serveur.
-hostname ¦ Nom de la machine. ¦ Comparer avec le nom attendu dans l'AD.
-getmac /v ¦ Adresses MAC de chaque carte. ¦ Utile pour une réservation DHCP ou une MAC en double (VM clonée).
-ping {{GW}} ¦ Teste la passerelle. ¦ Échec = problème local (câble, IP, VLAN, mode réseau VM).
-ping {{IPSRV}} ¦ Teste le serveur par son IP. ¦ Si l'IP répond mais pas le nom → DNS.
-ping {{SRV}} ¦ Teste le serveur par son nom (résolution + réponse). ¦ « Hôte introuvable » = DNS. « Délai dépassé » = pare-feu ou machine éteinte.
-ping 8.8.8.8 ¦ Teste la sortie Internet sans DNS. ¦ OK mais google.fr KO → DNS / redirecteurs.
-ping -t {{IPSRV}} ¦ Ping continu (arrêt Ctrl+C). ¦ Pratique pendant qu'on change un câble ou un paramètre.
-ping -n 20 {{IPSRV}} ¦ 20 paquets : mesure pertes et latence. ¦ % de perte en bas du résultat.
-ping -a {{IPSRV}} ¦ Ping avec résolution inverse (IP → nom). ¦ Pas de nom = pas de PTR dans la zone inverse.
-tracert 8.8.8.8 ¦ Chemin réseau saut par saut. ¦ Le dernier saut qui répond indique où ça coupe.
-tracert -d 8.8.8.8 ¦ Même chose sans résolution de noms (plus rapide).
-pathping 8.8.8.8 ¦ Traceroute + statistiques de pertes par saut (≈ 1 min). ¦ Saut avec perte élevée = maillon faible.
-arp -a ¦ Table ARP : IP ↔ MAC des voisins joints récemment. ¦ Deux IP avec la même MAC ou une MAC inattendue = conflit.
-route print ¦ Table de routage. ¦ La ligne 0.0.0.0 donne la passerelle par défaut utilisée.
-netstat -ano ¦ Toutes les connexions et ports en écoute, avec le PID. ¦ Associer un PID à un processus avec tasklist.
-netstat -ano | findstr :3389 ¦ Filtre sur un port (ici RDP). ¦ LISTENING = le service écoute bien.
-netstat -r ¦ Table de routage (équivalent route print).
-netsh interface ip show config ¦ Config IP de chaque interface (DHCP ou statique, DNS). ¦ Voir si le DNS est statique ou reçu en DHCP.
-netsh advfirewall show allprofiles state ¦ État du pare-feu Windows par profil. ¦ Profil actif Domaine / Privé / Public.
-netsh wlan show interfaces ¦ Wi-Fi : SSID, signal, débit. ¦ Signal faible = déconnexions.
-netsh winsock reset ¦ Réinitialise la pile Winsock (redémarrage requis). ¦ Dernier recours si tout semble bon mais rien ne passe.
-netsh int ip reset ¦ Réinitialise la pile TCP/IP (redémarrage requis). ¦ Dernier recours, après avoir noté la config IP.
-nbtstat -A {{IPSRV}} ¦ Nom NetBIOS d'une machine à partir de son IP.
-## ps | ⚡ Réseau Windows (PowerShell) | Plus lisible que CMD, et utilisable dans Windows Admin Center.
-Get-NetIPConfiguration ¦ Résumé propre : IP, passerelle, DNS par carte. ¦ Vérifier IPv4DefaultGateway et DNSServer.
-Get-NetAdapter ¦ État des cartes réseau (Up / Disconnected / Disabled) et vitesse. ¦ Disconnected = câble ou « câble branché » décoché dans VirtualBox.
-Get-DnsClientServerAddress -AddressFamily IPv4 ¦ Serveurs DNS configurés par carte. ¦ Doit être {{IPSRV}}.
-Test-Connection {{IPSRV}} -Count 4 ¦ Équivalent de ping.
-Test-NetConnection {{SRV}} -Port 445 ¦ Teste un port TCP précis (445 = partages SMB). ¦ TcpTestSucceeded : True = port joignable. False = pare-feu / service arrêté.
-Test-NetConnection {{SRV}} -Port 389 ¦ Teste LDAP (contrôleur de domaine). ¦ False = le client ne pourra pas joindre le domaine.
-Test-NetConnection {{SRV}} -Port 3389 ¦ Teste le Bureau à distance.
-Test-NetConnection {{SRV}} -TraceRoute ¦ Traceroute en PowerShell.
-Get-NetRoute -DestinationPrefix 0.0.0.0/0 ¦ Passerelle(s) par défaut. ¦ Deux passerelles = routage aléatoire.
-Get-NetTCPConnection -State Listen | Sort-Object LocalPort ¦ Ports en écoute sur la machine.
-Get-NetNeighbor -AddressFamily IPv4 ¦ Table ARP en PowerShell.
-Get-NetFirewallProfile | Select-Object Name,Enabled ¦ Pare-feu activé par profil.
-Get-NetConnectionProfile ¦ Profil réseau de la carte (DomainAuthenticated / Private / Public). ¦ Public sur un poste du domaine = il ne voit pas le DC au démarrage.
-Restart-NetAdapter -Name "Ethernet" ¦ Désactive / réactive la carte. ¦ Nom exact donné par Get-NetAdapter.
-## dns | 🔤 DNS | Toujours tester avec le nom court, le FQDN et en inverse.
-nslookup {{SRV}} ¦ Résout le nom du serveur, indique quel DNS répond. ¦ « Serveur : UnKnown » = pas de PTR pour le DNS (sans gravité). « Non-existent domain » = pas d'enregistrement.
-nslookup {{SRV}}.{{FQDN}} ¦ Résolution par le FQDN. ¦ OK en FQDN mais KO en nom court = suffixe DNS manquant.
-nslookup {{FQDN}} ¦ Doit renvoyer l'IP des contrôleurs de domaine. ¦ Échec = impossible de joindre le domaine.
-nslookup {{IPSRV}} ¦ Résolution inverse (IP → nom). ¦ Échec = pas de zone inverse ou pas de PTR.
-nslookup -type=SRV _ldap._tcp.dc._msdcs.{{FQDN}} ¦ Enregistrements SRV qui permettent aux clients de trouver un DC. ¦ Absents = DNS AD cassé → redémarrer Netlogon sur le DC, dcdiag /test:dns.
-nslookup google.fr {{IPSRV}} ¦ Interroge directement le DNS du DC. ¦ Échec = redirecteurs manquants ou pas d'accès Internet du serveur.
-nslookup google.fr 8.8.8.8 ¦ Interroge un DNS public pour comparer. ¦ OK ici mais KO via le DC = problème côté DC.
-nslookup -type=MX {{FQDN}} ¦ Serveur(s) de messagerie du domaine.
-Resolve-DnsName {{SRV}} ¦ Équivalent PowerShell de nslookup (utilise aussi le cache et le fichier hosts).
-Resolve-DnsName {{SRV}} -DnsOnly -NoHostsFile ¦ Force l'interrogation DNS pure. ¦ Différent du résultat précédent = entrée dans le fichier hosts ou le cache.
-Get-DnsClientCache ¦ Cache DNS du poste.
-Clear-DnsClientCache ¦ Vide le cache DNS (équivalent ipconfig /flushdns).
-notepad C:\Windows\System32\drivers\etc\hosts ¦ Ouvre le fichier hosts. ¦ Une ligne ajoutée à la main peut forcer une mauvaise IP.
-## dom | 🏢 Domaine, session, Kerberos (sur le client) | Pour « impossible d'ouvrir la session », « relation d'approbation », « GPO pas appliquée ».
-whoami ¦ Compte actuellement connecté. ¦ .\ ou NOMPC\ = session locale, pas domaine.
-whoami /groups ¦ Groupes présents dans le jeton de la session. ¦ Groupe absent alors qu'il est ajouté dans l'AD = fermer / rouvrir la session.
-whoami /upn ¦ UPN du compte (login@domaine).
-echo %logonserver% ¦ Contrôleur de domaine qui a authentifié la session. ¦ \\NOMDUPC = session ouverte avec les identifiants en cache, DC non joint.
-echo %userdomain% ¦ Domaine de l'utilisateur connecté.
-systeminfo | findstr /i "domain" ¦ Domaine de la machine. ¦ WORKGROUP = poste pas dans le domaine.
-nltest /dsgetdc:{{FQDN}} ¦ Cherche un contrôleur de domaine joignable. ¦ Erreur = DNS ou réseau vers le DC.
-nltest /sc_verify:{{FQDN}} ¦ Vérifie le canal sécurisé poste ↔ domaine. ¦ Échec = « relation d'approbation » → Test-ComputerSecureChannel -Repair.
-Test-ComputerSecureChannel -Verbose ¦ Même vérification en PowerShell. ¦ False → réparer avec -Repair -Credential {{NB}}\administrateur.
-klist ¦ Tickets Kerberos de la session. ¦ Aucun ticket = authentification NTLM ou problème Kerberos.
-klist purge ¦ Supprime les tickets Kerberos (reprend les nouveaux groupes sans fermer la session, en partie).
-w32tm /query /status ¦ Source de temps et dernière synchro. ¦ Source « Local CMOS Clock » sur un client = pas synchro avec le DC.
-w32tm /stripchart /computer:{{SRV}} /samples:3 /dataonly ¦ Décalage horaire avec le serveur. ¦ Plus de 5 min = Kerberos refuse l'ouverture de session.
-w32tm /resync ¦ Force la resynchronisation de l'heure.
-net user {{USER}} /domain ¦ Fiche du compte AD : actif, expiration, dernier mot de passe, heures d'accès, groupes. ¦ « Compte : actif Non » ou date d'expiration dépassée.
-net group "Admins du domaine" /domain ¦ Membres d'un groupe du domaine.
-net accounts /domain ¦ Politique de mot de passe et de verrouillage du domaine. ¦ Seuil et durée de verrouillage.
-gpupdate /force ¦ Réapplique toutes les GPO. ¦ « Déconnexion requise » = certaines GPO (lecteurs, logiciels) s'appliquent à la prochaine session.
-gpresult /r ¦ GPO appliquées et refusées pour l'utilisateur et l'ordinateur. ¦ Section « GPO filtrées / refusées » + groupes de sécurité.
-gpresult /r /scope user ¦ Uniquement la partie utilisateur.
-gpresult /r /scope computer ¦ Uniquement la partie ordinateur (à lancer en admin).
-gpresult /h C:\gpresult.html /f ¦ Rapport HTML complet (ouvrir dans le navigateur). ¦ Idéal comme capture pour le ticket GLPI.
-rsop.msc ¦ Console graphique de la stratégie résultante.
-## ad | 👤 Active Directory (sur le serveur) | PowerShell sur le DC, ou outil PowerShell de Windows Admin Center.
-Get-ADUser {{USER}} -Properties LockedOut,Enabled,PasswordExpired,PasswordLastSet,AccountExpirationDate,badPwdCount,LastLogonDate,MemberOf ¦ État complet d'un compte. ¦ LockedOut True, Enabled False, PasswordExpired True, AccountExpirationDate passée.
-Search-ADAccount -LockedOut -UsersOnly | Select-Object Name,SamAccountName ¦ Tous les comptes verrouillés.
-Search-ADAccount -AccountDisabled -UsersOnly | Select-Object Name ¦ Tous les comptes désactivés.
-Search-ADAccount -PasswordExpired | Select-Object Name ¦ Comptes au mot de passe expiré.
-Search-ADAccount -AccountExpired | Select-Object Name ¦ Comptes expirés (date de fin dépassée).
-Get-ADPrincipalGroupMembership {{USER}} | Select-Object Name ¦ Groupes d'un utilisateur.
-Get-ADGroupMember "GG_{{SHARE}}" | Select-Object Name ¦ Membres d'un groupe.
-Get-ADUser {{USER}} | Select-Object DistinguishedName ¦ Dans quelle OU se trouve l'utilisateur. ¦ Mauvaise OU = la GPO liée ne s'applique pas.
-Get-ADComputer PC-CLIENT01 -Properties LastLogonDate,Enabled ¦ Compte ordinateur : existe, actif, dernière connexion.
-Get-WinEvent -FilterHashtable @{LogName='Security';Id=4740} -MaxEvents 5 | Format-List TimeCreated,Message ¦ Verrouillages de compte avec le poste à l'origine. ¦ « Nom de l'ordinateur appelant » dans le message.
-Get-WinEvent -FilterHashtable @{LogName='Security';Id=4625} -MaxEvents 10 | Format-List TimeCreated,Message ¦ Échecs d'ouverture de session. ¦ Code d'état 0xC000006A = mauvais mot de passe, 0xC0000234 = verrouillé, 0xC0000072 = désactivé.
-Get-ADDefaultDomainPasswordPolicy ¦ Politique de mot de passe du domaine (longueur, verrouillage).
-Get-ADDomainController -Filter * | Select-Object Name,IPv4Address,IsGlobalCatalog ¦ Liste des DC.
-dcdiag /q ¦ Test global du DC, n'affiche que les erreurs. ¦ Aucune sortie = tout va bien.
-dcdiag /test:dns ¦ Test de la configuration DNS du DC.
-repadmin /replsummary ¦ Résumé de la réplication entre DC. ¦ Erreurs / échecs en colonne « fails ».
-netdom query fsmo ¦ Qui détient les rôles FSMO.
-Get-Service NTDS,DNS,Netlogon,KDC,W32Time | Select-Object Name,Status ¦ Services vitaux du DC. ¦ Tous doivent être Running.
-## smb | 📁 Partages et droits | Pour « accès refusé », « lecteur absent », « mot de passe redemandé ».
-net use ¦ Lecteurs réseau connectés et leur état. ¦ « Non disponible » / « Déconnecté ».
-net view \\{{SRV}} ¦ Partages visibles sur le serveur. ¦ Erreur 53 = nom introuvable, 5 = accès refusé.
-Test-Path \\{{SRV}}\{{SHARE}} ¦ Le chemin du partage est-il accessible ? ¦ False = chemin, réseau ou droits.
-net use Z: \\{{SRV}}\{{SHARE}} /persistent:yes ¦ Connecte un lecteur à la main (pour tester).
-net use Z: /delete ¦ Supprime un lecteur réseau.
-cmdkey /list ¦ Identifiants enregistrés (Gestionnaire d'identification). ¦ Entrée pour le serveur = peut forcer un mauvais compte.
-cmdkey /delete:{{SRV}} ¦ Supprime les identifiants enregistrés pour ce serveur.
-Get-SmbConnection ¦ Connexions SMB du client : serveur, partage, compte utilisé, version SMB. ¦ Mauvais compte dans « UserName ».
-net share ¦ (Serveur) Partages de la machine.
-Get-SmbShare ¦ (Serveur) Partages et chemins.
-Get-SmbShareAccess -Name {{SHARE}} ¦ (Serveur) Droits de partage. ¦ Le plus restrictif entre partage et NTFS s'applique.
-icacls D:\Partages\{{SHARE}} ¦ (Serveur) Droits NTFS du dossier. ¦ (I) = hérité, (OI)(CI) = s'applique aux sous-éléments, M / RX / F.
-Get-Acl D:\Partages\{{SHARE}} | Format-List ¦ (Serveur) Droits NTFS en PowerShell.
-Get-SmbSession | Select-Object ClientComputerName,ClientUserName ¦ (Serveur) Qui est connecté aux partages.
-Get-SmbOpenFile | Select-Object ClientUserName,Path ¦ (Serveur) Fichiers ouverts (fichier « verrouillé par un autre utilisateur »).
-## sys | 💻 Poste : système, disque, performances | Pour « PC lent », « plantages », « ne démarre plus correctement ».
-systeminfo ¦ OS, version, heure de démarrage, domaine, RAM, correctifs installés. ¦ « Heure de démarrage » très ancienne = redémarrer avant tout.
-Get-ComputerInfo | Select-Object OsName,OsVersion,CsDomain,CsTotalPhysicalMemory ¦ Résumé système en PowerShell.
-Get-CimInstance Win32_OperatingSystem | Select-Object LastBootUpTime ¦ Dernier démarrage.
-Get-PSDrive -PSProvider FileSystem ¦ Espace libre sur chaque disque. ¦ C: presque plein = lenteurs, mises à jour bloquées.
-Get-PhysicalDisk | Select-Object FriendlyName,MediaType,HealthStatus ¦ Santé des disques. ¦ Warning / Unhealthy = disque à remplacer.
-Get-Process | Sort-Object CPU -Descending | Select-Object -First 10 Name,CPU,WorkingSet ¦ 10 processus les plus gourmands.
-tasklist ¦ Processus en cours avec PID et mémoire.
-tasklist /svc ¦ Services hébergés par chaque processus (svchost).
-taskkill /PID 1234 /F ¦ Tue un processus par son PID. ¦ Remplacer 1234.
-sfc /scannow ¦ Vérifie et répare les fichiers système (admin). ¦ « a trouvé des fichiers corrompus mais n'a pas pu… » → lancer DISM puis relancer sfc.
-DISM /Online /Cleanup-Image /CheckHealth ¦ Vérifie rapidement l'image Windows.
-DISM /Online /Cleanup-Image /RestoreHealth ¦ Répare l'image Windows (peut prendre du temps).
-chkdsk C: /scan ¦ Vérifie le système de fichiers sans redémarrer.
-Get-HotFix | Sort-Object InstalledOn -Descending | Select-Object -First 5 ¦ Dernières mises à jour installées. ¦ Problème apparu juste après une mise à jour ?
-perfmon /rel ¦ Moniteur de fiabilité : historique des plantages et installations. ¦ Croix rouges à la date du problème.
-resmon ¦ Moniteur de ressources (CPU, disque, réseau par processus).
-msinfo32 ¦ Informations système complètes (matériel, pilotes).
-shutdown /r /t 0 ¦ Redémarre immédiatement.
-## svc | ⚙️ Services et journaux | Un service arrêté explique beaucoup de pannes (spouleur, DHCP, DNS…).
-Get-Service | Where-Object {$_.StartType -eq 'Automatic' -and $_.Status -ne 'Running'} ¦ Services automatiques qui ne tournent pas. ¦ La cause est souvent dans cette liste (quelques-uns sont normaux).
-Get-Service Spooler ¦ État d'un service précis.
-Restart-Service Spooler -Force ¦ Redémarre un service.
-sc query spooler ¦ État d'un service (CMD).
-sc qc spooler ¦ Configuration : type de démarrage, compte, dépendances. ¦ Démarrage « DISABLED » = service désactivé.
-Get-WinEvent -FilterHashtable @{LogName='System';Level=1,2} -MaxEvents 20 | Format-Table TimeCreated,Id,ProviderName,Message -Wrap ¦ 20 dernières erreurs critiques du journal Système. ¦ Source et ID à coller dans le ticket.
-Get-WinEvent -FilterHashtable @{LogName='Application';Level=2} -MaxEvents 20 | Format-Table TimeCreated,Id,ProviderName -Wrap ¦ Dernières erreurs applicatives.
-Get-WinEvent -LogName System -MaxEvents 30 | Where-Object ProviderName -like "*GroupPolicy*" ¦ Événements des GPO. ¦ 1058 / 1030 = impossible de lire SYSVOL (réseau / DNS vers le DC).
-eventvwr.msc ¦ Observateur d'événements graphique.
-## prn | 🖨️ Impression
-Get-Printer | Select-Object Name,DriverName,PortName,PrinterStatus ¦ Imprimantes installées et leur état.
-Get-PrintJob -PrinterName "IMP-COMPTA" ¦ Travaux en attente. ¦ Travail en erreur = bloque toute la file.
-Get-PrinterPort ¦ Ports (IP) des imprimantes. ¦ Vérifier que l'IP du port est la bonne.
-Test-NetConnection 192.168.10.60 -Port 9100 ¦ L'imprimante réseau est-elle joignable (port RAW) ? ¦ Remplacer par l'IP de l'imprimante.
-Restart-Service Spooler -Force ¦ Redémarre le spouleur d'impression.
-rundll32 printui.dll,PrintUIEntry /s ¦ Propriétés du serveur d'impression (pilotes installés, suppression).
-## srv | 🖧 Rôles serveur : DHCP et DNS | Sur le serveur Windows.
-Get-WindowsFeature | Where-Object Installed ¦ Rôles et fonctionnalités installés.
-Get-Service DHCPServer,DNS | Select-Object Name,Status ¦ Services DHCP et DNS démarrés ?
-Get-DhcpServerInDC ¦ Serveurs DHCP autorisés dans l'AD. ¦ Absent = le serveur ne distribue rien.
-Get-DhcpServerv4Scope ¦ Étendues : plage, masque, état. ¦ State Inactive = étendue désactivée.
-Get-DhcpServerv4ScopeStatistics ¦ Taux d'occupation des étendues. ¦ PercentageInUse à 100 = plus d'adresses libres.
-Get-DhcpServerv4OptionValue -ScopeId {{NET}}.0 ¦ Options de l'étendue (003 routeur, 006 DNS, 015 domaine). ¦ Mauvaise passerelle ou mauvais DNS distribués.
-Get-DhcpServerv4Lease -ScopeId {{NET}}.0 ¦ Baux attribués (quel poste a quelle IP).
-Get-DhcpServerv4Reservation -ScopeId {{NET}}.0 ¦ Réservations.
-Get-DnsServerZone ¦ Zones DNS (directe, inverse, _msdcs). ¦ Zone inverse absente = nslookup inverse KO.
-Get-DnsServerResourceRecord -ZoneName {{FQDN}} ¦ Enregistrements de la zone.
-Get-DnsServerForwarder ¦ Redirecteurs vers Internet. ¦ Vide = le DC ne résout pas les noms externes (hors indications de racine).
-Clear-DnsServerCache -Force ¦ Vide le cache du serveur DNS.
-## remote | 🛰️ Accès distant | Diagnostiquer un poste sans se déplacer.
-mstsc /v:{{SRV}} ¦ Bureau à distance vers une machine.
-Test-WSMan {{SRV}} ¦ WinRM répond-il ? (requis pour Windows Admin Center et PowerShell distant) ¦ Erreur = Enable-PSRemoting -Force sur la cible.
-Enter-PSSession -ComputerName PC-CLIENT01 ¦ Ouvre une session PowerShell à distance. ¦ Exit-PSSession pour sortir.
-Invoke-Command -ComputerName PC-CLIENT01 -ScriptBlock { ipconfig /all } ¦ Lance une commande sur un poste distant.
-Invoke-GPUpdate -Computer PC-CLIENT01 -Force ¦ Force les GPO sur un poste distant.
-## lin | 🐧 Linux | Debian / Ubuntu (équivalent Red Hat entre parenthèses). sudo si besoin.
-ip a ¦ Adresses IP des interfaces. ¦ Interface DOWN ou sans inet = pas d'IP.
-ip r ¦ Table de routage. ¦ Ligne « default via » = passerelle.
-ip link ¦ État des interfaces (UP / DOWN).
-hostname -I ¦ Toutes les IP de la machine, en une ligne.
-cat /etc/resolv.conf ¦ Serveurs DNS utilisés. ¦ nameserver doit pointer vers le bon DNS.
-ping -c 4 {{GW}} ¦ Teste la passerelle (4 paquets).
-tracepath 8.8.8.8 ¦ Chemin réseau (traceroute sans installation).
-dig {{SRV}}.{{FQDN}} ¦ Résolution DNS détaillée (paquet dnsutils / bind-utils). ¦ Section ANSWER vide = pas d'enregistrement.
-host {{SRV}}.{{FQDN}} ¦ Résolution DNS simple.
-ss -tulpn ¦ Ports en écoute et processus associés. ¦ Service absent de la liste = il ne tourne pas ou écoute ailleurs.
-nc -zv {{IPSRV}} 445 ¦ Teste un port distant (netcat). ¦ « succeeded » / « open » = joignable.
-curl -I http://localhost ¦ Le serveur web répond-il ? (code HTTP) ¦ 200 OK ; 500 = erreur appli ; connexion refusée = service arrêté.
-systemctl status apache2 ¦ État d'un service (httpd sur Red Hat). ¦ active (running) / failed + dernières lignes de log.
-systemctl --failed ¦ Tous les services en échec.
-systemctl restart apache2 ¦ Redémarre un service.
-journalctl -u apache2 -n 50 --no-pager ¦ 50 dernières lignes de log d'un service.
-journalctl -p err -b ¦ Erreurs depuis le dernier démarrage.
-tail -n 50 /var/log/syslog ¦ Journal système (/var/log/messages sur Red Hat).
-tail -n 50 /var/log/auth.log ¦ Connexions et échecs d'authentification (/var/log/secure).
-df -h ¦ Espace disque. ¦ 100 % sur / ou /var = services qui plantent (MariaDB, GLPI…).
-du -sh /var/* ¦ Taille des dossiers de /var (logs qui gonflent).
-free -h ¦ Mémoire et swap utilisés.
-top ¦ Processus et charge en temps réel (q pour quitter).
-uptime ¦ Depuis quand la machine tourne + charge moyenne.
-last -n 10 ¦ 10 dernières connexions.
-id {{USER}} ¦ UID et groupes d'un utilisateur.
-getent passwd {{USER}} ¦ Le compte existe-t-il (local ou AD via SSSD) ?
-chage -l {{USER}} ¦ Expiration du mot de passe.
-faillock --user {{USER}} ¦ Échecs de connexion / verrouillage. ¦ faillock --user {{USER}} --reset pour déverrouiller.
-cat /etc/os-release ¦ Distribution et version.
-</script>
+
 <script src="assets/data-diag.js"></script>
 <script>
 (function(){
   const {load, store, copy, esc, fill, vars} = TSSR;
 
-  // ================= Onglets =================
-  const tabs = document.querySelectorAll('#tabs button');
-  function showTab(t){
-    tabs.forEach(x => x.classList.toggle('on', x.dataset.tab === t));
-    document.getElementById('tab-wz').classList.toggle('hidden', t !== 'wz');
-    document.getElementById('tab-cmds').classList.toggle('hidden', t !== 'cmds');
-    document.getElementById('q').classList.toggle('hidden', t !== 'cmds');
-    document.getElementById('nav').classList.toggle('hidden', t !== 'cmds');
-    store('diag_tab', t);
-  }
-  tabs.forEach(b => b.onclick = () => { showTab(b.dataset.tab); window.scrollTo(0, 0); });
-  showTab(location.hash === '#commandes' ? 'cmds' : (load('diag_tab') || 'wz'));
+  // Variables : un changement réaffiche l'étape en cours
+  TSSR.varsPanel(document.getElementById('vars'), null, () => { if(path.length) go(path[path.length - 1].node, true); });
 
   // Ligne de commande copiable
   function cmdHTML(list){
@@ -330,9 +80,9 @@ cat /etc/os-release ¦ Distribution et version.
     path = []; cur = null;
     wz.innerHTML = '<div class="sympt">' + DIAG_START.map(s =>
       `<button data-id="${s[0]}"><span class="ic">${s[1]}</span><b>${s[2]}</b><span class="d">${s[3]}</span></button>`).join('') + '</div>' +
-      `<p class="muted" style="margin-top:14px">Les commandes utilisent tes variables (domaine, serveur, IP…) réglables dans l'onglet <a href="#" id="goVars">Commandes</a>.</p>`;
+      `<p class="muted" style="margin-top:14px">Les commandes utilisent tes <a href="#varsBox" id="goVars">variables</a> (domaine, serveurs, IP). Besoin d'une commande précise ? <a href="commandes.html">Toutes les commandes</a>.</p>`;
     wz.querySelectorAll('.sympt button').forEach(b => b.onclick = () => { path = [{node:b.dataset.id, answer:null, label:startName(b.dataset.id)}]; go(b.dataset.id); });
-    document.getElementById('goVars').onclick = e => { e.preventDefault(); showTab('cmds'); document.getElementById('vars').scrollIntoView(); };
+    document.getElementById('goVars').onclick = () => { document.getElementById('varsBox').open = true; };
   }
 
   function trailHTML(){
@@ -353,7 +103,7 @@ cat /etc/os-release ¦ Distribution et version.
   function go(id, back){
     const n = DIAG[id]; cur = id;
     if(!n){ wz.innerHTML = '<div class="card badbox">Étape introuvable : ' + esc(id) + '</div>'; return; }
-    if(n.r){ renderResult(n); return; }
+    if(n.r){ renderResult(n, back); return; }
     const step = path.length;
     wz.innerHTML = `<div class="card">${trailHTML()}
       <div class="step-n">Étape ${step}</div>
@@ -391,10 +141,10 @@ Vérification : ${strip(n.v || '')}
 ${t.sol}`, v);
   }
 
-  function renderResult(n){
+  function renderResult(n, back){
     const v = vars();
     const hist = TSSR.loadJ('diag_hist', []);
-    hist.unshift({d:Date.now(), s:path[0].label, r:n.r}); TSSR.saveJ('diag_hist', hist.slice(0, 30));
+    if(!back){ hist.unshift({d:Date.now(), s:path[0].label, r:n.r}); TSSR.saveJ('diag_hist', hist.slice(0, 30)); }
     wz.innerHTML = `<div class="card">${trailHTML()}
       <div class="res-h"><span class="pill ok">Cause probable</span><h2>${esc(n.r)}</h2></div>
       <div class="meta">
@@ -409,65 +159,10 @@ ${t.sol}`, v);
       ${navHTML()}</div>`;
     document.getElementById('tk').textContent = ticketText(n);
     wireCmds(wz); wireNav(); TSSR.addCopyButtons(wz);
-    wz.scrollIntoView({block:'start', behavior:'smooth'});
+    if(!back) wz.scrollIntoView({block:'start', behavior:'smooth'});
   }
   renderStart();
 
-  // ================= Liste de commandes =================
-  const list = document.getElementById('list'), nav = document.getElementById('nav');
-  let box = null;
-  const tplNodes = [];
-  document.getElementById('data').textContent.split('\n').forEach(line => {
-    line = line.replace(/\r$/, '');
-    if(!line.trim()) return;
-    if(line.startsWith('## ')){
-      const [id, title, intro] = line.slice(3).split(' | ');
-      const sec = document.createElement('section'); sec.className = 'card'; sec.id = id.trim();
-      const h = document.createElement('h2'); h.textContent = title.trim(); sec.appendChild(h);
-      if(intro){ const p = document.createElement('p'); p.className = 'intro'; p.textContent = intro.trim(); sec.appendChild(p); }
-      box = document.createElement('div'); sec.appendChild(box); list.appendChild(sec);
-      const a = document.createElement('a'); a.href = '#' + sec.id; a.textContent = title.trim(); nav.appendChild(a);
-      return;
-    }
-    const [cmd, desc, look] = line.split(' ¦ ');
-    const row = document.createElement('div'); row.className = 'row';
-    const c = document.createElement('div'); c.className = 'cmd';
-    const code = document.createElement('code'); code.dataset.tpl = cmd.trim(); code.title = 'Cliquer pour copier';
-    const b = document.createElement('button'); b.textContent = 'Copier';
-    c.appendChild(code); c.appendChild(b);
-    const d = document.createElement('div'); d.className = 'desc';
-    const s = document.createElement('span'); s.dataset.tpl = (desc || '').trim(); d.appendChild(s);
-    tplNodes.push(code, s);
-    if(look){ const l = document.createElement('span'); l.className = 'look'; l.dataset.tpl = look.trim(); d.appendChild(l); tplNodes.push(l); }
-    row.appendChild(c); row.appendChild(d); box.appendChild(row);
-    code.onclick = b.onclick = () => copy(code.textContent, b);
-  });
-
-  // Variables partagées
-  const inputs = [...document.querySelectorAll('[data-v]')];
-  inputs.forEach(i => { const s = load('v_' + i.dataset.v); if(s) i.value = s; });
-  function render(){
-    const v = vars();
-    inputs.forEach(i => { if(i.value.trim()) v[i.dataset.v] = i.value.trim(); });
-    tplNodes.forEach(n => n.textContent = fill(n.dataset.tpl, v));
-  }
-  inputs.forEach(i => i.addEventListener('input', () => { store('v_' + i.dataset.v, i.value); render(); }));
-  render();
-
-  // Filtre
-  const norm = TSSR.norm;
-  document.getElementById('q').addEventListener('input', function(){
-    const q = norm(this.value.trim());
-    document.getElementById('vars').classList.toggle('hidden', !!q);
-    list.querySelectorAll('section').forEach(sec => {
-      let any = false;
-      sec.querySelectorAll('.row').forEach(r => {
-        const hit = !q || norm(r.textContent + ' ' + sec.querySelector('h2').textContent).indexOf(q) > -1;
-        r.classList.toggle('hidden', !hit); if(hit) any = true;
-      });
-      sec.classList.toggle('hidden', !any);
-    });
-  });
 })();
 </script>
 </body>

@@ -1,0 +1,150 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="robots" content="noindex, nofollow, noarchive">
+<title>Commandes – TSSR Lab</title>
+<link rel="stylesheet" href="assets/style.css">
+<style>
+html{scroll-padding-top:175px}
+.shells button{font-size:13px}
+.shells button .n{opacity:.7;font-size:12px}
+.sec h2{display:flex;align-items:center;gap:8px}
+.sec p.intro{margin:-4px 0 8px;color:var(--muted);font-size:13.5px}
+.c{padding:10px 0;border-top:1px solid var(--line)}
+.c:first-of-type{border-top:0}
+.c .top{display:flex;gap:6px;align-items:flex-start}
+.c code.cmd{flex:1;background:var(--code);color:var(--code-txt);padding:7px 10px;border-radius:7px;font:13.5px/1.45 ui-monospace,Consolas,"Cascadia Mono",monospace;white-space:pre-wrap;word-break:break-word;cursor:copy}
+.c.tool code.cmd{background:var(--acc-soft);color:var(--txt);cursor:default}
+.c .top button{flex:none;font-size:12px;padding:5px 9px}
+.c .star{border:0;background:none;font-size:17px;padding:3px 4px;color:var(--muted)}
+.c .star.on{color:#e3b341}
+.sh{flex:none;font:600 11px ui-monospace,Consolas,monospace;padding:3px 6px;border-radius:5px;margin-top:5px;min-width:42px;text-align:center}
+.sh.ps{background:#1f4e8c;color:#fff}.sh.cmd{background:#3b3b3b;color:#fff}.sh.lin{background:#d97706;color:#fff}.sh.tool{background:var(--line);color:var(--txt)}
+.c .d{margin:5px 0 0 48px;font-size:14.5px}
+.c .u{margin:3px 0 0 48px;font-size:13.5px;color:var(--muted)}
+.c .u::before{content:"Comment : ";font-weight:600;color:var(--txt)}
+.c .l{margin:3px 0 0 48px;font-size:13.5px;color:var(--muted)}
+.c .l::before{content:"À regarder : ";font-weight:600;color:var(--ok)}
+@media (max-width:600px){.c .d,.c .u,.c .l{margin-left:0}.sh{min-width:0}}
+.empty{text-align:center;color:var(--muted);padding:30px}
+#varsBox summary{font-size:16px}
+</style>
+<script src="assets/app.js"></script>
+</head>
+<body>
+<header id="site-head" data-page="cmds">
+  <input id="q" data-search type="search" placeholder="Chercher : cluster, iscsi, verrouillé, dns, port, chmod…  ( / )" autocomplete="off" style="flex:1;min-width:220px">
+  <div class="tabs shells" id="shells">
+    <button data-sh="" class="on">Tout</button>
+    <button data-sh="ps">PowerShell</button>
+    <button data-sh="cmd">CMD</button>
+    <button data-sh="lin">Linux</button>
+    <button data-sh="tool">Outils</button>
+    <button data-sh="fav">★ Favoris</button>
+  </div>
+  <nav class="chips" id="nav" style="width:100%"></nav>
+</header>
+
+<main class="narrow">
+  <div class="pagehead">
+    <h1>Commandes prêtes à copier</h1>
+    <p>Clique sur une commande pour la copier. Chaque commande indique à quoi elle sert, comment s'en servir et ce qu'il faut regarder dans le résultat. ★ pour mettre de côté celles dont tu as besoin pendant l'épreuve.</p>
+  </div>
+  <details class="card" id="varsBox">
+    <summary>⚙️ Variables : ton plan d'adressage (domaine, serveurs, IP)</summary>
+    <p class="muted">Recopie ici le plan d'adressage du sujet : toutes les commandes du site se mettent à jour.</p>
+    <div class="vars" id="vars"></div>
+  </details>
+  <div id="list"></div>
+  <p class="muted" style="text-align:center">Ordre de dépannage conseillé : physique → IP → passerelle → DNS → domaine → droits → service. Pas trouvé ? Dis-le au jury : « je vérifie la syntaxe sur la documentation Microsoft ».</p>
+</main>
+
+<script src="assets/data-cmds.js"></script>
+<script>
+(function(){
+  const {load, store, loadJ, saveJ, copy, esc, fill, vars, norm} = TSSR;
+  const SH = {ps:'PS', cmd:'CMD', lin:'bash', tool:'outil'};
+
+  // ---- Lecture de la base ----
+  const sections = [];
+  let cur = null;
+  CMDS_TXT.split('\n').forEach(line => {
+    line = line.replace(/\r$/, '');
+    if(!line.trim()) return;
+    if(line.startsWith('## ')){
+      const [id, title, intro] = line.slice(3).split(' | ');
+      cur = {id:id.trim(), title:title.trim(), intro:(intro || '').trim(), items:[]}; sections.push(cur); return;
+    }
+    const p = line.split('¦').map(s => s.trim());
+    cur.items.push({sh:p[0], c:p[1], d:p[2] || '', u:p[3] || '', l:p[4] || '', key:cur.id + '|' + p[1]});
+  });
+
+  // ---- Variables ----
+  const vb = document.getElementById('vars');
+  TSSR.varsPanel(vb, null, render);
+  if(!load('cmds_vars_seen')){ document.getElementById('varsBox').open = true; store('cmds_vars_seen', '1'); }
+
+  // ---- Favoris ----
+  const favs = new Set(loadJ('cmd_favs', []));
+  let shell = load('cmd_shell') || '';
+
+  // ---- Compteurs par shell ----
+  function counts(){
+    const n = {'':0, ps:0, cmd:0, lin:0, tool:0, fav:favs.size};
+    sections.forEach(s => s.items.forEach(i => { n['']++; n[i.sh]++; }));
+    document.querySelectorAll('#shells button').forEach(b => {
+      const base = b.textContent.replace(/\s*\d+$/, '');
+      b.innerHTML = esc(base) + ` <span class="n">${n[b.dataset.sh]}</span>`;
+      b.classList.toggle('on', b.dataset.sh === shell);
+    });
+  }
+
+  function render(){
+    const v = vars(), q = norm(document.getElementById('q').value.trim());
+    const list = document.getElementById('list'), nav = document.getElementById('nav');
+    let html = '', chips = '', total = 0;
+    sections.forEach(s => {
+      const items = s.items.filter(i => {
+        if(shell === 'fav' ? !favs.has(i.key) : (shell && i.sh !== shell)) return false;
+        if(q && norm([i.c, i.d, i.u, i.l, s.title].join(' ')).indexOf(q) < 0) return false;
+        return true;
+      });
+      if(!items.length) return;
+      total += items.length;
+      chips += `<a href="#${s.id}">${esc(s.title)}</a>`;
+      html += `<section class="card sec" id="${s.id}"><h2>${esc(s.title)}</h2>${s.intro && !q ? `<p class="intro">${esc(fill(s.intro, v))}</p>` : ''}` +
+        items.map(i => `<div class="c ${i.sh}" data-k="${esc(i.key)}">
+          <div class="top"><span class="sh ${i.sh}">${SH[i.sh] || i.sh}</span>
+            <code class="cmd"${i.sh !== 'tool' ? ' title="Cliquer pour copier"' : ''}>${esc(fill(i.c, v))}</code>
+            ${i.sh !== 'tool' ? '<button class="cp">Copier</button>' : ''}
+            <button class="star${favs.has(i.key) ? ' on' : ''}" title="Favori" aria-label="Favori">${favs.has(i.key) ? '★' : '☆'}</button></div>
+          ${i.d ? `<div class="d">${esc(fill(i.d, v))}</div>` : ''}
+          ${i.u ? `<div class="u">${esc(fill(i.u, v))}</div>` : ''}
+          ${i.l ? `<div class="l">${esc(fill(i.l, v))}</div>` : ''}</div>`).join('') + '</section>';
+    });
+    list.innerHTML = html || `<div class="card empty">${shell === 'fav' ? 'Aucun favori : clique sur ☆ à côté d\'une commande pour l\'ajouter.' : 'Aucune commande ne correspond.'}</div>`;
+    nav.innerHTML = chips;
+    list.querySelectorAll('.c').forEach(r => {
+      const code = r.querySelector('code.cmd'), b = r.querySelector('.cp');
+      if(b){ code.onclick = b.onclick = () => copy(code.textContent, b); }
+      r.querySelector('.star').onclick = e => {
+        const k = r.dataset.k; favs.has(k) ? favs.delete(k) : favs.add(k); saveJ('cmd_favs', [...favs]);
+        e.target.classList.toggle('on', favs.has(k)); e.target.textContent = favs.has(k) ? '★' : '☆';
+        counts(); if(shell === 'fav') render();
+      };
+    });
+    counts();
+  }
+
+  document.querySelectorAll('#shells button').forEach(b => b.onclick = () => { shell = b.dataset.sh; store('cmd_shell', shell); render(); window.scrollTo(0, 0); });
+  let t; document.getElementById('q').addEventListener('input', () => { clearTimeout(t); t = setTimeout(render, 120); });
+  const h = decodeURIComponent(location.hash.slice(1));
+  if(h.startsWith('q=')){ document.getElementById('q').value = h.slice(2); shell = ''; }
+  render();
+  if(h && !h.startsWith('q=')){ const el = document.getElementById(h); if(el) setTimeout(() => el.scrollIntoView(), 50); }
+})();
+</script>
+</body>
+</html>

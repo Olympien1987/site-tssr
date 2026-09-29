@@ -23,6 +23,7 @@
   const PAGES = [
     ['index.html',    'accueil',  '🏠', 'Accueil'],
     ['diag.html',     'diag',     '🔎', 'Diagnostic'],
+    ['commandes.html','cmds',     '⌨️', 'Commandes'],
     ['revision.html', 'revision', '📚', 'Révision'],
     ['examen.html',   'examen',   '🎓', 'Examen blanc'],
     ['memo.html',     'memo',     '🛠️', 'Mémo'],
@@ -103,7 +104,10 @@
   }
 
   // ---- Variables d'examen partagées ({{FQDN}}, {{SRV}}…) ----
-  const VAR_DEFAULTS = {FQDN:'domaine.local', NB:'DOMAINE', SRV:'SRV-DC1', IPSRV:'192.168.10.10', NET:'192.168.10', GW:'192.168.10.254', USER:'jdupont', SHARE:'Compta'};
+  const VAR_DEFAULTS = {FQDN:'domaine.local', NB:'DOMAINE', SRV:'SRV-DC1', IPSRV:'192.168.10.10', NET:'192.168.10', GW:'192.168.10.254', USER:'jdupont', SHARE:'Compta',
+    LIN:'192.168.10.20', CLU:'CLUSTER01', NODE1:'NOEUD1', NODE2:'NOEUD2', VM:'VM-SRV01', NAS:'192.168.10.50'};
+  const VAR_LABELS = {FQDN:'Domaine (FQDN)', NB:'Nom NetBIOS', SRV:'Serveur (DC)', IPSRV:'IP du DC', NET:'Réseau (3 octets)', GW:'Passerelle', USER:'Utilisateur test', SHARE:'Partage',
+    LIN:'IP serveur Linux', CLU:'Nom du cluster', NODE1:'Nœud 1', NODE2:'Nœud 2', VM:'VM Hyper-V', NAS:'IP du NAS (iSCSI)'};
   function vars(){
     const v = {};
     Object.keys(VAR_DEFAULTS).forEach(k => v[k] = load('v_' + k) || VAR_DEFAULTS[k]);
@@ -121,7 +125,14 @@
   // Date de l'examen (modifiable depuis l'accueil)
   function examDate(){ return load('examDate') || '2026-10-08'; }
 
-  window.TSSR = {store, load, loadJ, saveJ, toast, ask, copy, addCopyButtons, vars, fill, VAR_DEFAULTS, norm, esc, shuffle, fmt, examDate};
+  // Panneau de saisie des variables (dans un conteneur .vars) ; onChange appelé à chaque frappe
+  function varsPanel(el, keys, onChange){
+    keys = keys || Object.keys(VAR_DEFAULTS);
+    el.innerHTML = keys.map(k => `<label>${VAR_LABELS[k]}<input data-v="${k}" value="${esc(load('v_' + k) || VAR_DEFAULTS[k])}" spellcheck="false"></label>`).join('');
+    el.querySelectorAll('input').forEach(i => i.addEventListener('input', () => { store('v_' + i.dataset.v, i.value.trim()); if(onChange) onChange(); }));
+  }
+
+  window.TSSR = {store, load, loadJ, saveJ, toast, ask, copy, addCopyButtons, vars, fill, VAR_DEFAULTS, VAR_LABELS, varsPanel, norm, esc, shuffle, fmt, examDate};
 
   if(document.readyState === 'loading') document.addEventListener('DOMContentLoaded', buildHeader);
   else buildHeader();
