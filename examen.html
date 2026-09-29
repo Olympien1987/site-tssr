@@ -1,0 +1,398 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="robots" content="noindex, nofollow, noarchive">
+<title>Examen blanc – TSSR Lab</title>
+<link rel="stylesheet" href="assets/style.css">
+<style>
+.modes{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:12px}
+.mode{display:flex;flex-direction:column;gap:6px}
+.mode h3{margin:0;font-size:17px}
+.mode .dur{font-size:13px;color:var(--acc);font-weight:600}
+.mode p{margin:0;color:var(--muted);font-size:14px;flex:1}
+.mode .bar{margin-top:8px}
+/* Écrit */
+.q h3{margin:0 0 6px;font-size:16px;display:flex;gap:8px;align-items:baseline;flex-wrap:wrap}
+.q .theme{font-size:12px;color:var(--muted)}
+.enonce p{margin:4px 0}
+.q textarea{width:100%;min-height:120px;margin:8px 0;resize:vertical;font-size:14px;line-height:1.5}
+.corr{display:none;margin-top:8px;border-left:4px solid var(--ok);background:var(--ok-soft);padding:10px 12px;border-radius:6px}
+.corr.show{display:block}
+.corr h4{margin:10px 0 4px;font-size:14px}
+.corr h4:first-child{margin-top:0}
+.kp label{display:flex;gap:8px;align-items:flex-start;margin:3px 0;cursor:pointer}
+.kp input{margin-top:4px}
+.qscore{font-size:13px;color:var(--muted);margin-top:6px}
+.doc{background:var(--bg);border:1px solid var(--line);border-radius:8px;padding:12px 14px;font-family:Georgia,serif;font-size:14.5px}
+.doc h4{margin:0 0 6px;font-family:system-ui,sans-serif}
+.qnav{display:flex;gap:4px;flex-wrap:wrap}
+.qnav a{min-width:30px;height:30px;display:grid;place-items:center;border:1px solid var(--line);border-radius:6px;text-decoration:none;color:var(--txt);font-size:12px;background:var(--card)}
+.qnav a.done{background:var(--acc-soft);border-color:var(--acc);color:var(--acc)}
+/* Barre de chrono collante */
+.chrono{position:sticky;top:calc(var(--head-h) + 50px);z-index:15;background:var(--card);border:1px solid var(--line);border-radius:12px;padding:8px 12px;margin-bottom:14px;box-shadow:var(--shadow)}
+/* Mise en situation */
+.ticket{border:1px solid var(--line);border-left:5px solid var(--acc);border-radius:10px;padding:14px 16px;background:var(--card)}
+.ticket .who{font-size:13px;color:var(--muted)}
+.ticket .said{font-size:18px;font-style:italic;margin:8px 0}
+.steps label{display:flex;gap:10px;align-items:flex-start;padding:8px 0;border-top:1px solid var(--line);cursor:pointer}
+.steps label:first-child{border-top:0}
+.steps input{margin-top:4px;transform:scale(1.2)}
+.steps small{display:block;color:var(--muted)}
+.hist td,.hist th{font-size:13px}
+</style>
+<script src="assets/app.js"></script>
+</head>
+<body>
+<header id="site-head" data-page="examen">
+  <div class="tabs" id="tabs">
+    <button data-tab="home" class="on">🎓 Choisir une épreuve</button>
+    <button data-tab="A">🗒️ Écrit blanc A</button>
+    <button data-tab="B">🗒️ Écrit blanc B</button>
+    <button data-tab="chrono">⏱️ QCM chronométré</button>
+    <button data-tab="oral">🎭 Mise en situation</button>
+  </div>
+</header>
+
+<main class="narrow">
+
+<!-- ================= ACCUEIL ================= -->
+<section id="tab-home">
+  <div class="pagehead">
+    <h1>Examen blanc</h1>
+    <p>Mets-toi dans les conditions du jour J : chrono, pas de mémo, correction à la fin.</p>
+  </div>
+  <div class="modes">
+    <div class="card mode">
+      <span class="dur">2 h · questions ouvertes</span>
+      <h3>🗒️ Écrit blanc A</h3>
+      <p>PME « Atlantique Services » : sous-réseaux, DHCP, DNS, AD, GPO, Linux, scripts, sécurité, sauvegardes, anglais.</p>
+      <div class="muted" id="sumA"></div>
+      <div class="bar"><button class="pri" data-go="A">Commencer</button></div>
+    </div>
+    <div class="card mode">
+      <span class="dur">2 h · questions ouvertes</span>
+      <h3>🗒️ Écrit blanc B</h3>
+      <p>Deuxième sujet complet, autres thèmes : supervision, maintenance, virtualisation, IPv6, document en anglais.</p>
+      <div class="muted" id="sumB"></div>
+      <div class="bar"><button class="pri" data-go="B">Commencer</button></div>
+    </div>
+    <div class="card mode">
+      <span class="dur">15 à 45 min · QCM</span>
+      <h3>⏱️ QCM chronométré</h3>
+      <p>Questions tirées au hasard sur tous les thèmes. Pas de correction avant la fin, note sur 20 et bilan par thème.</p>
+      <div class="muted" id="sumC"></div>
+      <div class="bar"><button class="pri" data-go="chrono">Commencer</button></div>
+    </div>
+    <div class="card mode">
+      <span class="dur">15 min · oral</span>
+      <h3>🎭 Mise en situation</h3>
+      <p>Un utilisateur t'appelle avec un incident tiré au hasard. Traite-le à voix haute, puis auto-évalue ta démarche comme le jury.</p>
+      <div class="muted" id="sumO"></div>
+      <div class="bar"><button class="pri" data-go="oral">Commencer</button></div>
+    </div>
+  </div>
+  <div class="card">
+    <h2>Rappel du déroulé réel (RNCP37682)</h2>
+    <div class="tw"><table>
+      <tr><th>Épreuve</th><th>Durée</th><th>Ce qui se passe</th></tr>
+      <tr><td>Mise en situation – phase 1</td><td>1 h 30</td><td>En autonomie sur les VM + documentation de chaque intervention (ticket GLPI).</td></tr>
+      <tr><td>Mise en situation – phase 2</td><td>45 min</td><td>Avec le jury, qui joue l'utilisateur : incidents et demandes à traiter en direct.</td></tr>
+      <tr><td>Entretien technique</td><td>45 min</td><td>Retour sur ce que tu as fait : pourquoi, comment, alternatives.</td></tr>
+      <tr><td>Questionnaire professionnel</td><td>2 h</td><td>Questions ouvertes écrites, dont un document technique en anglais.</td></tr>
+      <tr><td>Entretien final</td><td>20 min</td><td>Échange sur ton Dossier Professionnel et ton projet.</td></tr>
+    </table></div>
+  </div>
+</section>
+
+<section id="tab-A" class="hidden"></section>
+<section id="tab-B" class="hidden"></section>
+
+<!-- ================= QCM CHRONO ================= -->
+<section id="tab-chrono" class="hidden">
+  <div id="chSetup">
+    <div class="pagehead"><h1>QCM chronométré</h1><p>Aucune correction pendant l'épreuve : tu peux naviguer et changer tes réponses. À la fin du temps, la copie est ramassée.</p></div>
+    <div class="card">
+      <h2>Format</h2>
+      <div class="bar" id="chFmt">
+        <button data-n="20" data-m="15">Court · 20 questions · 15 min</button>
+        <button data-n="40" data-m="30" class="pri">Standard · 40 questions · 30 min</button>
+        <button data-n="60" data-m="45">Long · 60 questions · 45 min</button>
+      </div>
+    </div>
+    <div class="card">
+      <h2>Mes tentatives</h2>
+      <div id="chHist"></div>
+    </div>
+  </div>
+  <div id="chRun" class="hidden">
+    <div class="chrono bar"><span class="timer" id="chTimer">30:00</span><span class="muted">Temps restant</span><span class="spacer"></span><button class="pri" id="chEnd">Rendre la copie</button></div>
+    <div id="chBox"></div>
+  </div>
+</section>
+
+<!-- ================= MISE EN SITUATION ================= -->
+<section id="tab-oral" class="hidden">
+  <div class="pagehead"><h1>Mise en situation</h1><p>Le téléphone sonne. Lance le chrono, parle à voix haute comme devant le jury (ou fais jouer l'utilisateur par quelqu'un), puis coche ce que tu as vraiment fait.</p></div>
+  <div class="card">
+    <div class="bar"><button class="pri" id="orNew">📞 Nouvel appel</button><span class="spacer"></span><span class="timer" id="orTimer">15:00</span><button id="orGo">▶ Démarrer</button></div>
+  </div>
+  <div id="orBox"></div>
+</section>
+</main>
+
+<script src="assets/data-sujets.js"></script>
+<script src="assets/data-qcm.js"></script>
+<script src="assets/data-diag.js"></script>
+<script src="assets/qcm.js"></script>
+<script>
+(function(){
+  const {load, store, loadJ, saveJ, esc, shuffle, ask, toast, fmt, addCopyButtons} = TSSR;
+  const pad = n => String(n).padStart(2, '0');
+  const mmss = s => `${Math.floor(s / 60)}:${pad(s % 60)}`;
+  const hms = s => `${Math.floor(s / 3600)}:${pad(Math.floor(s % 3600 / 60))}:${pad(s % 60)}`;
+
+  // ================= Onglets =================
+  const TABS = ['home', 'A', 'B', 'chrono', 'oral'];
+  const tabs = document.querySelectorAll('#tabs button');
+  function showTab(t){
+    if(TABS.indexOf(t) < 0) t = 'home';
+    tabs.forEach(x => x.classList.toggle('on', x.dataset.tab === t));
+    TABS.forEach(x => document.getElementById('tab-' + x).classList.toggle('hidden', x !== t));
+    history.replaceState(null, '', t === 'home' ? location.pathname : '#' + t);
+    if(t === 'home') summaries();
+    window.scrollTo(0, 0);
+  }
+  tabs.forEach(b => b.onclick = () => showTab(b.dataset.tab));
+  document.querySelectorAll('[data-go]').forEach(b => b.onclick = () => showTab(b.dataset.go));
+
+  // ================= Écrits blancs =================
+  Object.keys(SUJETS).forEach(id => buildExam(id, SUJETS[id]));
+
+  function buildExam(id, S){
+    const box = document.getElementById('tab-' + id);
+    const total = S.questions.reduce((a, q) => a + q.p, 0);
+    const state = loadJ('rev_' + id, {});
+    box.innerHTML = `
+      <div class="card">
+        <h2>${S.titre}</h2>${S.contexte}
+        <p class="muted">${S.questions.length} questions · ${total} points. Réponds sans le mémo, puis affiche les corrigés et coche les points clés que tu avais : la note se calcule toute seule.</p>
+        <div class="qnav" id="qn-${id}"></div>
+      </div>
+      <div class="chrono bar">
+        <span class="timer" id="tm-${id}">2:00:00</span>
+        <button class="pri" id="tmgo-${id}">▶ Démarrer</button>
+        <button id="tmrs-${id}" class="sm">↺</button>
+        <span class="spacer"></span>
+        <span class="muted" id="live-${id}"></span>
+      </div>
+      <div id="qs-${id}"></div>
+      <div class="card" id="res-${id}"><h2>Résultat</h2>
+        <div class="score" id="sc-${id}"></div>
+        <div class="muted" id="scd-${id}"></div>
+        <div class="bar" style="margin-top:12px">
+          <button id="all-${id}">Afficher tous les corrigés</button>
+          <button id="clr-${id}">Effacer mes réponses</button>
+        </div>
+      </div>`;
+    const qs = box.querySelector('#qs-' + id), qn = box.querySelector('#qn-' + id);
+    S.questions.forEach((Q, i) => {
+      const key = 'q' + i, st = state[key] || {a:'', k:[]};
+      const d = document.createElement('div'); d.className = 'card q'; d.id = `${id}-q${i + 1}`;
+      d.innerHTML = `<h3>Question ${i + 1}<span class="pill">${Q.p} pts</span><span class="theme">${Q.t}</span></h3>
+        <div class="enonce">${Q.q}</div>
+        <textarea placeholder="Ta réponse…" aria-label="Réponse à la question ${i + 1}"></textarea>
+        <button class="showc sm">Voir le corrigé</button>
+        <div class="corr"><h4>Corrigé</h4>${Q.c}
+          <h4>Points clés : coche ceux que tu avais</h4>
+          <div class="kp">${Q.k.map((x, j) => `<label><input type="checkbox" data-j="${j}">${x}</label>`).join('')}</div>
+          <div class="qscore"></div></div>`;
+      const ta = d.querySelector('textarea'); ta.value = st.a;
+      const corr = d.querySelector('.corr');
+      d.querySelector('.showc').onclick = function(){ corr.classList.toggle('show'); this.textContent = corr.classList.contains('show') ? 'Masquer le corrigé' : 'Voir le corrigé'; };
+      const boxes = [...d.querySelectorAll('.kp input')];
+      boxes.forEach(b => { b.checked = st.k.includes(+b.dataset.j); });
+      const qsc = d.querySelector('.qscore');
+      const link = document.createElement('a'); link.href = '#' + d.id; link.textContent = i + 1;
+      link.onclick = e => { e.preventDefault(); d.scrollIntoView({behavior:'smooth'}); };
+      qn.appendChild(link);
+      function upd(){
+        const k = boxes.filter(b => b.checked).map(b => +b.dataset.j);
+        state[key] = {a:ta.value, k};
+        saveJ('rev_' + id, state);
+        const r = k.length / Q.k.length;
+        qsc.textContent = `${fmt(Q.p * r)} / ${Q.p} pts` + (r < 0.5 ? ' · à retravailler' : '');
+        qsc.style.color = r < 0.5 ? 'var(--bad)' : 'var(--ok)';
+        link.classList.toggle('done', !!ta.value.trim());
+        global();
+      }
+      ta.addEventListener('input', upd); boxes.forEach(b => b.addEventListener('change', upd));
+      d._upd = upd; d._Q = Q; d._boxes = boxes; d._ta = ta;
+      qs.appendChild(d);
+    });
+    function global(){
+      let s = 0, weak = [], written = 0;
+      qs.querySelectorAll('.q').forEach((d, i) => {
+        const r = d._boxes.filter(b => b.checked).length / d._Q.k.length;
+        s += d._Q.p * r; if(r < 0.5) weak.push(i + 1);
+        if(d._ta.value.trim()) written++;
+      });
+      box.querySelector('#sc-' + id).textContent = `${fmt(s)} / ${total}  ·  ${fmt(s / total * 20)} / 20`;
+      box.querySelector('#scd-' + id).textContent = weak.length ? `Questions à retravailler : ${weak.join(', ')}` : 'Toutes les questions sont au-dessus de 50 %.';
+      box.querySelector('#live-' + id).textContent = `${written} / ${S.questions.length} rédigées`;
+      saveJ('exam_' + id, {s, total, written, n:S.questions.length});
+    }
+    qs.querySelectorAll('.q').forEach(d => d._upd());
+    box.querySelector('#all-' + id).onclick = () => qs.querySelectorAll('.corr').forEach(c => c.classList.add('show'));
+    box.querySelector('#clr-' + id).onclick = () => ask('Effacer toutes tes réponses et coches de cet examen ?', 'Effacer').then(ok => {
+      if(!ok) return;
+      qs.querySelectorAll('.q').forEach(d => { d._ta.value = ''; d._boxes.forEach(b => b.checked = false); d.querySelector('.corr').classList.remove('show'); d._upd(); });
+    });
+    // Chrono
+    let left = +(load('tm_' + id) || 7200), run = null;
+    const tm = box.querySelector('#tm-' + id), go = box.querySelector('#tmgo-' + id);
+    function show(){ tm.textContent = hms(left); tm.classList.toggle('low', left <= 600); }
+    go.onclick = () => {
+      if(run){ clearInterval(run); run = null; go.textContent = '▶ Reprendre'; return; }
+      go.textContent = '⏸ Pause';
+      run = setInterval(() => {
+        left = Math.max(0, left - 1); store('tm_' + id, left); show();
+        if(left === 600) toast('Plus que 10 minutes : relis-toi.');
+        if(!left){ clearInterval(run); run = null; go.textContent = '▶ Démarrer';
+          ask("Temps écoulé ! Pose le stylo et passe à la correction.", 'Afficher les corrigés').then(ok => { if(ok){ box.querySelector('#all-' + id).click(); box.querySelector('#res-' + id).scrollIntoView(); } }); }
+      }, 1000);
+    };
+    box.querySelector('#tmrs-' + id).onclick = () => { clearInterval(run); run = null; left = 7200; store('tm_' + id, left); go.textContent = '▶ Démarrer'; show(); };
+    show();
+  }
+
+  // ================= QCM chronométré =================
+  const setup = document.getElementById('chSetup'), runBox = document.getElementById('chRun');
+  let chTimer = null, chCtl = null;
+  function renderHist(){
+    const h = loadJ('exam_hist', []);
+    document.getElementById('chHist').innerHTML = h.length ? `<div class="tw"><table class="hist">
+      <tr><th>Date</th><th>Format</th><th>Note</th><th>Temps</th></tr>
+      ${h.slice(0, 15).map(x => `<tr><td>${new Date(x.d).toLocaleDateString('fr-FR', {day:'2-digit', month:'2-digit'})} ${new Date(x.d).toLocaleTimeString('fr-FR', {hour:'2-digit', minute:'2-digit'})}</td>
+        <td>${x.n} questions</td><td><span class="pill ${x.on20 >= 14 ? 'ok' : x.on20 >= 10 ? 'warn' : 'bad'}">${fmt(x.on20)} / 20</span></td><td>${x.time}</td></tr>`).join('')}
+      </table></div>` : '<p class="muted">Aucune tentative pour l\'instant.</p>';
+  }
+  document.querySelectorAll('#chFmt button').forEach(b => b.onclick = () => startChrono(+b.dataset.n, +b.dataset.m));
+  function startChrono(n, minutes){
+    const list = shuffle(QCM.slice()).slice(0, n);
+    let left = minutes * 60; const t0 = Date.now();
+    const tEl = document.getElementById('chTimer');
+    const elapsed = () => mmss(Math.min(minutes * 60, Math.round((Date.now() - t0) / 1000)));
+    setup.classList.add('hidden'); runBox.classList.remove('hidden');
+    document.getElementById('chEnd').classList.remove('hidden');
+    tEl.textContent = mmss(left); tEl.classList.remove('low');
+    const stop = () => { clearInterval(chTimer); chTimer = null; document.getElementById('chEnd').classList.add('hidden'); };
+    chCtl = TSSR.runQCM(document.getElementById('chBox'), list, {mode:'exam', title:`QCM chronométré – ${n} questions`, elapsed,
+      onFinish: r => { stop(); const h = loadJ('exam_hist', []); h.unshift({d:Date.now(), n, on20:r.on20, time:elapsed()}); saveJ('exam_hist', h.slice(0, 50)); },
+      onQuit: () => { stop(); runBox.classList.add('hidden'); setup.classList.remove('hidden'); renderHist(); window.scrollTo(0, 0); }});
+    chTimer = setInterval(() => {
+      left--; tEl.textContent = mmss(Math.max(0, left)); tEl.classList.toggle('low', left <= 120);
+      if(left === 120) toast('Plus que 2 minutes');
+      if(left <= 0){ stop(); toast('Temps écoulé : copie ramassée'); chCtl.finish(); }
+    }, 1000);
+    window.scrollTo(0, 0);
+  }
+  document.getElementById('chEnd').onclick = () => ask('Rendre ta copie maintenant ?', 'Rendre').then(ok => { if(ok) chCtl.finish(); });
+  renderHist();
+
+  // ================= Mise en situation =================
+  const PEOPLE = [['Mme Martin', 'Comptabilité', 'PC-COMPTA-02'], ['M. Bernard', 'Direction', 'PC-DIR-01'], ['Mme Petit', 'Ressources humaines', 'PC-RH-03'],
+    ['M. Durand', 'Production', 'PC-PROD-07'], ['Mme Leroy', 'Accueil', 'PC-ACC-01'], ['M. Moreau', 'Commercial', 'PORT-COM-04'], ['Mme Fournier', 'Logistique', 'PC-LOG-02']];
+  const MOODS = ['pressé(e) : « J\'ai une réunion dans 10 minutes ! »', 'calme mais perdu(e) avec l\'informatique', 'agacé(e) : « C\'est la troisième fois ce mois-ci ! »', 'coopératif(ve), prêt(e) à tester ce que tu demandes'];
+  const SAY = {
+    session:"Bonjour, je n'arrive plus à ouvrir ma session ce matin, il y a un message d'erreur.",
+    lecteur:"Mon lecteur réseau a disparu, je ne retrouve plus mes dossiers partagés.",
+    acces:"J'essaie d'ouvrir un dossier sur le serveur et on me dit accès refusé.",
+    reseau:"Je n'ai plus Internet, et je crois même que plus rien ne marche.",
+    gpo:"On m'a dit qu'un nouveau paramètre allait arriver sur mon poste, mais je ne vois rien.",
+    imp:"Mon document ne sort pas de l'imprimante, ça reste bloqué.",
+    vm:"Le nouveau poste qu'on vient d'installer n'arrive pas à rejoindre le domaine.",
+    lent:"Mon ordinateur est très lent depuis quelques jours, c'est insupportable.",
+    web:"GLPI ne s'ouvre plus, j'ai une page d'erreur quand je veux faire un ticket.",
+  };
+  const STEPS = [
+    ['Accueil', "Je me suis présenté(e) (« Support informatique, bonjour… »)."],
+    ['Identifier', "J'ai demandé nom, service, nom du poste, numéro de rappel."],
+    ['Qualifier', "Message exact, depuis quand, collègues touchés, changement récent, déjà essayé ?"],
+    ['Reformuler', "J'ai reformulé le problème et fait valider par l'utilisateur."],
+    ['Ticket', "J'ai ouvert le ticket GLPI (type, catégorie, urgence, impact) dès le début."],
+    ['Raisonner à voix haute', "J'ai annoncé mes hypothèses du plus probable au moins probable."],
+    ['Tester', "J'ai fait un test à la fois, noté les résultats dans le ticket."],
+    ['Sécurité', "J'ai vérifié l'identité / demandé une validation si la demande touche aux droits."],
+    ['Faire valider', "J'ai fait tester l'utilisateur avant de conclure."],
+    ['Clore', "Cause expliquée simplement, conseil de prévention, « autre chose ? », solution dans GLPI."],
+  ];
+  let orLeft = 900, orRun = null, orCur = null;
+  const orT = document.getElementById('orTimer'), orGo = document.getElementById('orGo');
+  const orShow = () => { orT.textContent = mmss(orLeft); orT.classList.toggle('low', orLeft <= 120); };
+  orGo.onclick = () => {
+    if(!orCur){ toast("Tire d'abord un appel"); return; }
+    if(orRun){ clearInterval(orRun); orRun = null; orGo.textContent = '▶ Reprendre'; return; }
+    orGo.textContent = '⏸ Pause';
+    orRun = setInterval(() => { orLeft = Math.max(0, orLeft - 1); orShow(); if(!orLeft){ clearInterval(orRun); orRun = null; orGo.textContent = '▶ Démarrer'; toast('15 minutes écoulées : conclus et fais ton auto-évaluation'); } }, 1000);
+  };
+  function newCall(){
+    clearInterval(orRun); orRun = null; orLeft = 900; orShow(); orGo.textContent = '▶ Démarrer';
+    const s = DIAG_START[Math.random() * DIAG_START.length | 0];
+    const p = PEOPLE[Math.random() * PEOPLE.length | 0], mood = MOODS[Math.random() * MOODS.length | 0];
+    // Cause « cachée » tirée parmi les résultats accessibles depuis ce symptôme
+    const seen = new Set(), res = [];
+    const starts = DIAG_START.map(x => x[0]);
+    (function walk(id){ if(seen.has(id) || (id !== s[0] && starts.includes(id))) return; seen.add(id); const n = DIAG[id]; if(!n) return; if(n.r) res.push(id); else n.o.forEach(o => walk(o[1])); })(s[0]);
+    const hidden = res[Math.random() * res.length | 0];
+    orCur = {s, p, hidden};
+    const v = TSSR.vars();
+    document.getElementById('orBox').innerHTML = `
+      <div class="ticket card">
+        <div class="who">📞 Appel entrant · <b>${p[0]}</b> · ${p[1]} · poste ${p[2]} · utilisateur ${mood}</div>
+        <div class="said">« ${esc(SAY[s[0]])} »</div>
+        <div class="bar"><span class="pill">${s[1]} ${esc(s[2])}</span><span class="spacer"></span>
+          <button class="sm" id="orHint">🔍 Voir la cause cachée (pour le binôme qui joue l'utilisateur)</button></div>
+        <div id="orCause" class="hidden" style="margin-top:10px"></div>
+      </div>
+      <div class="card">
+        <h2>Auto-évaluation (grille du jury)</h2>
+        <div class="steps">${STEPS.map((x, i) => `<label><input type="checkbox" data-i="${i}"><span><b>${x[0]}</b><small>${x[1]}</small></span></label>`).join('')}</div>
+        <div class="bar" style="margin-top:10px"><span class="score" id="orScore">0 / ${STEPS.length}</span><span class="spacer"></span>
+          <a class="btn" href="diag.html">🧭 Ouvrir l'assistant de dépannage</a><button class="pri" id="orSave">Enregistrer</button></div>
+      </div>`;
+    const n = DIAG[hidden];
+    document.getElementById('orCause').innerHTML = `<div class="tip"><b>Cause réelle :</b> ${esc(n.r)}.<br>Si le technicien pose les bonnes questions, réponds en fonction de cette cause.<br><b>Solution attendue :</b> ${TSSR.fill(n.fix.join(' '), v)}</div>`;
+    document.getElementById('orHint').onclick = () => document.getElementById('orCause').classList.toggle('hidden');
+    const boxes = [...document.querySelectorAll('.steps input')];
+    const upd = () => { const k = boxes.filter(b => b.checked).length; const el = document.getElementById('orScore'); el.textContent = `${k} / ${STEPS.length}`; el.style.color = k >= 8 ? 'var(--ok)' : k >= 5 ? 'var(--warn)' : 'var(--bad)'; };
+    boxes.forEach(b => b.onchange = upd);
+    document.getElementById('orSave').onclick = () => {
+      const k = boxes.filter(b => b.checked).length, h = loadJ('oral_hist', []);
+      h.unshift({d:Date.now(), s:s[2], k, n:STEPS.length, t:900 - orLeft}); saveJ('oral_hist', h.slice(0, 30));
+      const miss = STEPS.filter((x, i) => !boxes[i].checked).map(x => x[0]);
+      toast('Mise en situation enregistrée');
+      if(miss.length) document.getElementById('orScore').insertAdjacentHTML('afterend', `<span class="muted">À travailler : ${miss.join(', ')}</span>`);
+      document.getElementById('orSave').disabled = true;
+    };
+  }
+  document.getElementById('orNew').onclick = newCall;
+  orShow();
+
+  // ================= Résumés (page d'accueil de l'onglet) =================
+  function summaries(){
+    ['A', 'B'].forEach(id => {
+      const e = loadJ('exam_' + id, null);
+      document.getElementById('sum' + id).textContent = e && e.written ? `${e.written} / ${e.n} questions rédigées · auto-évaluation ${fmt(e.s / e.total * 20)} / 20` : 'Pas encore commencé';
+    });
+    const h = loadJ('exam_hist', []);
+    document.getElementById('sumC').textContent = h.length ? `${h.length} tentative${h.length > 1 ? 's' : ''} · meilleure note ${fmt(Math.max(...h.map(x => x.on20)))} / 20` : 'Pas encore de tentative';
+    const o = loadJ('oral_hist', []);
+    document.getElementById('sumO').textContent = o.length ? `${o.length} appel${o.length > 1 ? 's' : ''} traité${o.length > 1 ? 's' : ''} · dernier : ${o[0].k} / ${o[0].n}` : 'Pas encore de simulation';
+  }
+  showTab(location.hash.slice(1) || 'home');
+})();
+</script>
+</body>
+</html>

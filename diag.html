@@ -2,68 +2,65 @@
 <html lang="fr">
 <head>
 <meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="robots" content="noindex, nofollow, noarchive">
-<title>Commandes de diagnostic</title>
+<title>Diagnostic – TSSR Lab</title>
+<link rel="stylesheet" href="assets/style.css">
 <style>
-:root{
-  --bg:#f6f7f9;--card:#fff;--txt:#1b1f24;--muted:#5b6470;--line:#dde1e6;
-  --acc:#1f6feb;--acc-soft:#e7f0ff;--code:#0f1720;--code-txt:#e6edf3;--ok:#1a7f37;
-}
-@media (prefers-color-scheme: dark){
-  :root:not([data-theme="light"]){
-    --bg:#0d1117;--card:#161b22;--txt:#e6edf3;--muted:#9aa4b1;--line:#2b323c;
-    --acc:#58a6ff;--acc-soft:#132339;--code:#0a0e13;--code-txt:#e6edf3;--ok:#3fb950;
-  }
-}
-:root[data-theme="dark"]{
-  --bg:#0d1117;--card:#161b22;--txt:#e6edf3;--muted:#9aa4b1;--line:#2b323c;
-  --acc:#58a6ff;--acc-soft:#132339;--code:#0a0e13;--code-txt:#e6edf3;--ok:#3fb950;
-}
-*{box-sizing:border-box}
-body{margin:0;background:var(--bg);color:var(--txt);font:15px/1.5 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif}
-header{position:sticky;top:0;z-index:10;background:var(--card);border-bottom:1px solid var(--line);padding:10px 16px}
-.top{display:flex;gap:10px;align-items:center;flex-wrap:wrap;max-width:1200px;margin:0 auto}
-.top h1{font-size:17px;margin:0 6px 0 0;white-space:nowrap}
-.top a.back{color:var(--acc);text-decoration:none;font-size:14px;white-space:nowrap}
-#q{flex:1;min-width:180px;padding:9px 12px;border:1px solid var(--line);border-radius:8px;background:var(--bg);color:var(--txt);font-size:15px}
-button{font:inherit;cursor:pointer;border:1px solid var(--line);background:var(--bg);color:var(--txt);border-radius:8px;padding:7px 10px}
-nav{max-width:1200px;margin:8px auto 0;display:flex;gap:6px;overflow-x:auto;padding-bottom:2px}
-nav a{white-space:nowrap;text-decoration:none;color:var(--acc);background:var(--acc-soft);padding:4px 10px;border-radius:999px;font-size:13px}
-main{max-width:1200px;margin:0 auto;padding:16px}
-.card{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:14px 16px;margin:0 0 16px;scroll-margin-top:110px}
-.card h2{margin:0 0 4px;font-size:18px}
-.card p.intro{margin:0 0 10px;color:var(--muted);font-size:13.5px}
-.vars{display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:8px}
-.vars label{font-size:12.5px;color:var(--muted);display:flex;flex-direction:column;gap:3px}
-.vars input{padding:7px 9px;border:1px solid var(--line);border-radius:6px;background:var(--bg);color:var(--txt);font:13px ui-monospace,Consolas,monospace}
-.row{display:grid;grid-template-columns:minmax(260px,1.1fr) 1.4fr;gap:4px 16px;padding:9px 0;border-top:1px solid var(--line)}
-.row:first-of-type{border-top:0}
+/* Assistant */
+.sympt{display:grid;grid-template-columns:repeat(auto-fill,minmax(230px,1fr));gap:10px}
+.sympt button{flex-direction:column;align-items:flex-start;text-align:left;gap:2px;padding:14px;border-radius:12px;background:var(--card);height:100%}
+.sympt button .ic{font-size:24px}
+.sympt button b{font-size:15px}
+.sympt button span.d{color:var(--muted);font-size:13px}
+.sympt button:hover{background:var(--acc-soft)}
+.trail{display:flex;flex-wrap:wrap;gap:6px;align-items:center;font-size:13px;margin-bottom:12px}
+.trail span.s{background:var(--acc-soft);color:var(--acc);padding:2px 9px;border-radius:999px}
+.step-n{font-size:12px;font-weight:700;color:var(--acc);text-transform:uppercase;letter-spacing:.04em}
+.wq{font-size:19px;font-weight:650;margin:2px 0 8px}
+.answers{display:flex;flex-direction:column;gap:8px;margin-top:14px}
+.answers button{justify-content:flex-start;text-align:left;padding:11px 14px;border-radius:10px;background:var(--card);font-size:15px}
+.answers button:hover{background:var(--acc-soft)}
+.answers button::before{content:"→";color:var(--acc);font-weight:700}
+.cmdl{display:flex;flex-direction:column;gap:6px;margin:8px 0}
 .cmd{display:flex;gap:6px;align-items:flex-start}
 .cmd code{flex:1;background:var(--code);color:var(--code-txt);padding:6px 9px;border-radius:6px;font:13px/1.45 ui-monospace,Consolas,"Cascadia Mono",monospace;white-space:pre-wrap;word-break:break-all;cursor:copy}
 .cmd button{padding:4px 8px;font-size:12px;flex:none}
-.cmd button.ok{color:var(--ok);border-color:var(--ok)}
-.desc b{font-weight:600}
+.res-h{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+.res-h h2{margin:0}
+.meta{display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:8px;margin:10px 0}
+.meta div{background:var(--bg);border:1px solid var(--line);border-radius:8px;padding:6px 10px;font-size:13px}
+.meta div b{display:block;font-size:14px}
+/* Liste de commandes */
+.row{display:grid;grid-template-columns:minmax(260px,1.1fr) 1.4fr;gap:4px 16px;padding:9px 0;border-top:1px solid var(--line)}
+.row:first-of-type{border-top:0}
 .desc .look{display:block;color:var(--muted);font-size:13.5px;margin-top:2px}
 .desc .look::before{content:"👁 "}
-.hidden{display:none}
-.tag{display:inline-block;font-size:11px;padding:0 6px;border-radius:4px;background:var(--acc-soft);color:var(--acc);margin-left:6px;vertical-align:middle}
-@media (max-width:700px){.row{grid-template-columns:1fr}.top h1{font-size:15px}}
+.card p.intro{margin:-4px 0 10px;color:var(--muted);font-size:13.5px}
+@media (max-width:700px){.row{grid-template-columns:1fr}}
 </style>
+<script src="assets/app.js"></script>
 </head>
 <body>
-<header>
-  <div class="top">
-    <a class="back" href="index.html">← Mémo</a>
-    <h1>🔎 Commandes de diagnostic</h1>
-    <input id="q" type="search" placeholder="Filtrer : dns, 169.254, verrouillé, port…" autocomplete="off">
-    <button id="theme" title="Thème">🌓</button>
+<header id="site-head" data-page="diag">
+  <div class="tabs" id="tabs">
+    <button data-tab="wz" class="on">🧭 Assistant de dépannage</button>
+    <button data-tab="cmds">📋 Commandes</button>
   </div>
-  <nav id="nav"></nav>
+  <input id="q" data-search type="search" placeholder="Filtrer les commandes : dns, 169.254, verrouillé, port…  ( / )" autocomplete="off" style="flex:1;min-width:200px" class="hidden">
+  <nav class="chips hidden" id="nav" style="width:100%"></nav>
 </header>
 
 <main>
-  <section class="card" id="vars">
+<section id="tab-wz">
+  <div class="pagehead">
+    <h1>Assistant de dépannage</h1>
+    <p>Choisis le symptôme décrit par l'utilisateur. Réponds aux questions : l'assistant te donne la cause probable, les commandes et le ticket GLPI prêt à copier.</p>
+  </div>
+  <div id="wz"></div>
+</section>
+
+<section id="tab-cmds" class="hidden">  <section class="card" id="vars">
     <h2>⚙️ Variables</h2>
     <p class="intro">Les mêmes que sur le mémo (partagées automatiquement). Clic sur une commande = copiée.</p>
     <div class="vars">
@@ -79,8 +76,8 @@ main{max-width:1200px;margin:0 auto;padding:16px}
   </section>
   <div id="list"></div>
   <p style="text-align:center;color:var(--muted);font-size:13px">Ordre conseillé : physique → IP → passerelle → DNS → domaine → droits → service.</p>
+</section>
 </main>
-
 <!--
 Format : "## id | Titre | intro" pour une section,
 puis une ligne par commande : commande ¦ à quoi elle sert ¦ ce qu'il faut regarder (optionnel)
@@ -292,81 +289,185 @@ chage -l {{USER}} ¦ Expiration du mot de passe.
 faillock --user {{USER}} ¦ Échecs de connexion / verrouillage. ¦ faillock --user {{USER}} --reset pour déverrouiller.
 cat /etc/os-release ¦ Distribution et version.
 </script>
-
+<script src="assets/data-diag.js"></script>
 <script>
 (function(){
-  function store(k,v){try{localStorage.setItem(k,v)}catch(e){}}
-  function load(k){try{return localStorage.getItem(k)}catch(e){return null}}
-  const root=document.documentElement;
-  const t=load('theme'); if(t) root.setAttribute('data-theme',t);
-  document.getElementById('theme').onclick=function(){
-    const dark=root.getAttribute('data-theme')?root.getAttribute('data-theme')==='dark':matchMedia('(prefers-color-scheme: dark)').matches;
-    const n=dark?'light':'dark'; root.setAttribute('data-theme',n); store('theme',n);
-  };
+  const {load, store, copy, esc, fill, vars} = TSSR;
 
-  // ---- Construction de la liste ----
-  const list=document.getElementById('list'), nav=document.getElementById('nav');
-  let sec=null, box=null;
-  const cmdNodes=[];
-  document.getElementById('data').textContent.split('\n').forEach(line=>{
-    line=line.replace(/\r$/,'');
+  // ================= Onglets =================
+  const tabs = document.querySelectorAll('#tabs button');
+  function showTab(t){
+    tabs.forEach(x => x.classList.toggle('on', x.dataset.tab === t));
+    document.getElementById('tab-wz').classList.toggle('hidden', t !== 'wz');
+    document.getElementById('tab-cmds').classList.toggle('hidden', t !== 'cmds');
+    document.getElementById('q').classList.toggle('hidden', t !== 'cmds');
+    document.getElementById('nav').classList.toggle('hidden', t !== 'cmds');
+    store('diag_tab', t);
+  }
+  tabs.forEach(b => b.onclick = () => { showTab(b.dataset.tab); window.scrollTo(0, 0); });
+  showTab(location.hash === '#commandes' ? 'cmds' : (load('diag_tab') || 'wz'));
+
+  // Ligne de commande copiable
+  function cmdHTML(list){
+    const v = vars();
+    return '<div class="cmdl">' + list.map(c => `<div class="cmd"><code title="Cliquer pour copier">${esc(fill(c, v))}</code><button>Copier</button></div>`).join('') + '</div>';
+  }
+  function wireCmds(scope){
+    scope.querySelectorAll('.cmd').forEach(r => {
+      const code = r.querySelector('code'), b = r.querySelector('button');
+      code.onclick = b.onclick = () => copy(code.textContent, b);
+    });
+  }
+
+  // ================= Assistant =================
+  const wz = document.getElementById('wz');
+  let path = [];   // [{node, answer}]
+  let cur = null;
+  const startName = id => (DIAG_START.find(s => s[0] === id) || [,,id])[2];
+  const strip = h => h.replace(/<[^>]+>/g, '').replace(/&lt;/g, '<').replace(/&gt;/g, '>').replace(/&amp;/g, '&');
+
+  function renderStart(){
+    path = []; cur = null;
+    wz.innerHTML = '<div class="sympt">' + DIAG_START.map(s =>
+      `<button data-id="${s[0]}"><span class="ic">${s[1]}</span><b>${s[2]}</b><span class="d">${s[3]}</span></button>`).join('') + '</div>' +
+      `<p class="muted" style="margin-top:14px">Les commandes utilisent tes variables (domaine, serveur, IP…) réglables dans l'onglet <a href="#" id="goVars">Commandes</a>.</p>`;
+    wz.querySelectorAll('.sympt button').forEach(b => b.onclick = () => { path = [{node:b.dataset.id, answer:null, label:startName(b.dataset.id)}]; go(b.dataset.id); });
+    document.getElementById('goVars').onclick = e => { e.preventDefault(); showTab('cmds'); document.getElementById('vars').scrollIntoView(); };
+  }
+
+  function trailHTML(){
+    return '<div class="trail"><span class="s">' + esc(path[0].label) + '</span>' +
+      path.slice(1).map(p => `<span>›</span><span>${esc(p.answer)}</span>`).join('') + '</div>';
+  }
+  function navHTML(){
+    return `<div class="bar" style="margin-top:16px"><button id="wBack">← Retour</button><button id="wRestart">↺ Nouveau diagnostic</button></div>`;
+  }
+  function wireNav(){
+    document.getElementById('wBack').onclick = () => {
+      if(path.length <= 1){ renderStart(); return; }
+      path.pop(); go(path[path.length - 1].node, true);
+    };
+    document.getElementById('wRestart').onclick = renderStart;
+  }
+
+  function go(id, back){
+    const n = DIAG[id]; cur = id;
+    if(!n){ wz.innerHTML = '<div class="card badbox">Étape introuvable : ' + esc(id) + '</div>'; return; }
+    if(n.r){ renderResult(n); return; }
+    const step = path.length;
+    wz.innerHTML = `<div class="card">${trailHTML()}
+      <div class="step-n">Étape ${step}</div>
+      <div class="wq">${n.q}</div>
+      ${n.h ? `<p class="muted" style="margin:0 0 4px">${fill(n.h, vars())}</p>` : ''}
+      ${n.c ? cmdHTML(n.c) : ''}
+      <div class="answers">${n.o.map((o, i) => `<button data-i="${i}">${esc(fill(o[0], vars()))}</button>`).join('')}</div>
+      ${navHTML()}</div>`;
+    wz.querySelectorAll('.answers button').forEach(b => b.onclick = () => {
+      const o = n.o[+b.dataset.i];
+      path.push({node:o[1], answer:fill(o[0], vars()), q:strip(n.q)});
+      go(o[1]);
+    });
+    wireCmds(wz); wireNav();
+    if(!back) wz.scrollIntoView({block:'start', behavior:'smooth'});
+  }
+
+  function ticketText(n){
+    const v = vars(), t = n.t;
+    const diag = path.slice(1).map(p => `- ${p.q} → ${p.answer}`).join('\n');
+    return fill(
+`Titre : ${t.titre}
+Type : ${t.type}   Catégorie : ${t.cat}   Urgence : ${t.u}   Impact : ${t.i}
+
+Symptôme signalé : ${path[0].label}
+Diagnostic :
+${diag || '- (aucun test)'}
+
+Cause identifiée : ${n.r}
+Actions réalisées :
+${n.fix.map((f, i) => `${i + 1}. ${strip(f)}`).join('\n')}
+Vérification : ${strip(n.v || '')}
+
+--- Solution ---
+${t.sol}`, v);
+  }
+
+  function renderResult(n){
+    const v = vars();
+    const hist = TSSR.loadJ('diag_hist', []);
+    hist.unshift({d:Date.now(), s:path[0].label, r:n.r}); TSSR.saveJ('diag_hist', hist.slice(0, 30));
+    wz.innerHTML = `<div class="card">${trailHTML()}
+      <div class="res-h"><span class="pill ok">Cause probable</span><h2>${esc(n.r)}</h2></div>
+      <div class="meta">
+        <div>Type<b>${n.t.type}</b></div><div>Urgence<b>${n.t.u}</b></div><div>Impact<b>${n.t.i}</b></div><div>Catégorie<b>${esc(n.t.cat)}</b></div>
+      </div>
+      <h3>Résolution</h3><ol class="prob">${n.fix.map(f => `<li>${fill(f, v)}</li>`).join('')}</ol>
+      ${n.c ? '<h3>Commandes</h3>' + cmdHTML(n.c) : ''}
+      ${n.v ? `<div class="okbox"><b>Vérification :</b> ${fill(n.v, v)}</div>` : ''}
+      <h3>Ticket GLPI prêt à coller</h3>
+      <pre><code id="tk"></code></pre>
+      <div class="tip">À l'examen : dis chaque hypothèse à voix haute, note chaque test dans le ticket, fais valider l'utilisateur avant de passer en <i>Résolu</i>.</div>
+      ${navHTML()}</div>`;
+    document.getElementById('tk').textContent = ticketText(n);
+    wireCmds(wz); wireNav(); TSSR.addCopyButtons(wz);
+    wz.scrollIntoView({block:'start', behavior:'smooth'});
+  }
+  renderStart();
+
+  // ================= Liste de commandes =================
+  const list = document.getElementById('list'), nav = document.getElementById('nav');
+  let box = null;
+  const tplNodes = [];
+  document.getElementById('data').textContent.split('\n').forEach(line => {
+    line = line.replace(/\r$/, '');
     if(!line.trim()) return;
     if(line.startsWith('## ')){
-      const [id,title,intro]=line.slice(3).split(' | ');
-      sec=document.createElement('section'); sec.className='card'; sec.id=id.trim();
-      const h=document.createElement('h2'); h.textContent=title.trim(); sec.appendChild(h);
-      if(intro){const p=document.createElement('p'); p.className='intro'; p.textContent=intro.trim(); sec.appendChild(p);}
-      box=document.createElement('div'); sec.appendChild(box); list.appendChild(sec);
-      const a=document.createElement('a'); a.href='#'+sec.id; a.textContent=title.trim(); nav.appendChild(a);
+      const [id, title, intro] = line.slice(3).split(' | ');
+      const sec = document.createElement('section'); sec.className = 'card'; sec.id = id.trim();
+      const h = document.createElement('h2'); h.textContent = title.trim(); sec.appendChild(h);
+      if(intro){ const p = document.createElement('p'); p.className = 'intro'; p.textContent = intro.trim(); sec.appendChild(p); }
+      box = document.createElement('div'); sec.appendChild(box); list.appendChild(sec);
+      const a = document.createElement('a'); a.href = '#' + sec.id; a.textContent = title.trim(); nav.appendChild(a);
       return;
     }
-    const [cmd,desc,look]=line.split(' ¦ ');
-    const row=document.createElement('div'); row.className='row';
-    const c=document.createElement('div'); c.className='cmd';
-    const code=document.createElement('code'); code.dataset.tpl=cmd.trim(); code.title='Cliquer pour copier';
-    const b=document.createElement('button'); b.textContent='Copier';
+    const [cmd, desc, look] = line.split(' ¦ ');
+    const row = document.createElement('div'); row.className = 'row';
+    const c = document.createElement('div'); c.className = 'cmd';
+    const code = document.createElement('code'); code.dataset.tpl = cmd.trim(); code.title = 'Cliquer pour copier';
+    const b = document.createElement('button'); b.textContent = 'Copier';
     c.appendChild(code); c.appendChild(b);
-    const d=document.createElement('div'); d.className='desc';
-    const s=document.createElement('span'); s.dataset.tpl=(desc||'').trim(); d.appendChild(s);
-    if(look){const l=document.createElement('span'); l.className='look'; l.dataset.tpl=look.trim(); d.appendChild(l);}
+    const d = document.createElement('div'); d.className = 'desc';
+    const s = document.createElement('span'); s.dataset.tpl = (desc || '').trim(); d.appendChild(s);
+    tplNodes.push(code, s);
+    if(look){ const l = document.createElement('span'); l.className = 'look'; l.dataset.tpl = look.trim(); d.appendChild(l); tplNodes.push(l); }
     row.appendChild(c); row.appendChild(d); box.appendChild(row);
-    const copy=()=>copyText(code.textContent,b);
-    code.onclick=copy; b.onclick=copy;
-    cmdNodes.push(code,s); if(d.querySelector('.look')) cmdNodes.push(d.querySelector('.look'));
+    code.onclick = b.onclick = () => copy(code.textContent, b);
   });
 
-  // ---- Variables (partagées avec le mémo) ----
-  const inputs=[...document.querySelectorAll('[data-v]')];
-  inputs.forEach(i=>{const s=load('v_'+i.dataset.v); if(s) i.value=s;});
+  // Variables partagées
+  const inputs = [...document.querySelectorAll('[data-v]')];
+  inputs.forEach(i => { const s = load('v_' + i.dataset.v); if(s) i.value = s; });
   function render(){
-    const v={}; inputs.forEach(i=>v[i.dataset.v]=i.value.trim());
-    cmdNodes.forEach(n=>{n.textContent=n.dataset.tpl.replace(/\{\{(\w+)\}\}/g,(m,k)=>v[k]!==undefined?v[k]:m);});
+    const v = vars();
+    inputs.forEach(i => { if(i.value.trim()) v[i.dataset.v] = i.value.trim(); });
+    tplNodes.forEach(n => n.textContent = fill(n.dataset.tpl, v));
   }
-  inputs.forEach(i=>i.addEventListener('input',()=>{store('v_'+i.dataset.v,i.value);render();}));
+  inputs.forEach(i => i.addEventListener('input', () => { store('v_' + i.dataset.v, i.value); render(); }));
   render();
 
-  // ---- Copie ----
-  function copyText(txt,b){
-    const done=()=>{b.textContent='✓';b.classList.add('ok');setTimeout(()=>{b.textContent='Copier';b.classList.remove('ok');},1200);};
-    const fallback=()=>{const ta=document.createElement('textarea');ta.value=txt;document.body.appendChild(ta);ta.select();try{document.execCommand('copy');done();}catch(e){}ta.remove();};
-    if(navigator.clipboard&&window.isSecureContext){navigator.clipboard.writeText(txt).then(done,fallback);}else fallback();
-  }
-
-  // ---- Filtre ----
-  const norm=s=>s.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'');
-  document.getElementById('q').addEventListener('input',function(){
-    const q=norm(this.value.trim());
-    document.getElementById('vars').classList.toggle('hidden',!!q);
-    list.querySelectorAll('section').forEach(sec=>{
-      let any=false;
-      sec.querySelectorAll('.row').forEach(r=>{
-        const hit=!q||norm(r.textContent+' '+sec.querySelector('h2').textContent).indexOf(q)>-1;
-        r.classList.toggle('hidden',!hit); if(hit) any=true;
+  // Filtre
+  const norm = TSSR.norm;
+  document.getElementById('q').addEventListener('input', function(){
+    const q = norm(this.value.trim());
+    document.getElementById('vars').classList.toggle('hidden', !!q);
+    list.querySelectorAll('section').forEach(sec => {
+      let any = false;
+      sec.querySelectorAll('.row').forEach(r => {
+        const hit = !q || norm(r.textContent + ' ' + sec.querySelector('h2').textContent).indexOf(q) > -1;
+        r.classList.toggle('hidden', !hit); if(hit) any = true;
       });
-      sec.classList.toggle('hidden',!any);
+      sec.classList.toggle('hidden', !any);
     });
   });
-  document.addEventListener('keydown',e=>{if(e.key==='/'&&document.activeElement.tagName!=='INPUT'){e.preventDefault();document.getElementById('q').focus();}});
 })();
 </script>
 </body>
